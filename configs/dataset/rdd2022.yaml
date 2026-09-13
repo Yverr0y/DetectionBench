@@ -1,0 +1,27 @@
+# dataset/rdd2022.yaml
+# Hydra `dataset` config group entry for RDD2022 (multi-national road damage).
+#
+# `raw_dir` is the `RDD_SPLIT` YOLO tree (train/val/test each with images/ +
+# labels/). Convert to the canonical layout via:
+#   detectionbench-prepare-coco --dataset rdd2022 --raw-dir <RDD_SPLIT> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+#
+# The source RDD_SPLIT labels carry a 5th class id (4, an "other" / D50
+# bucket, ~6.5k boxes); the adapter DROPS it to the 4-class CRDDC2022
+# taxonomy -- 0 longitudinal_crack, 1 transverse_crack, 2 alligator_crack,
+# 3 pothole (see src/detectionbench/datasets/rdd2022.py).
+#
+# License: CC BY-SA 4.0 (share-alike) -- keep any mirror under CC BY-SA 4.0.
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: rdd2022
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/RDD2022/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/RDD2022/yolo_dataset_coco
+num_classes: 4
+
+eval_split: test

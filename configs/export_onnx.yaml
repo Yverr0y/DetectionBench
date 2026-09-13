@@ -1,0 +1,37 @@
+# export_onnx.yaml
+# Hydra-based configuration for ONNX export (Ultralytics YOLO/RT-DETR or RF-DETR).
+#
+# One schema for both model families -- unlike training/evaluation, export
+# needs no separate dispatcher: `model.family: auto` infers Ultralytics vs
+# RF-DETR from `model.name`'s prefix (see `infer_model_family` in
+# export_onnx.py), or set it explicitly to "ultralytics"/"rfdetr".
+
+defaults:
+  - dataset: doclaynet # which registered dataset the checkpoint was trained on; override with dataset=<key>
+  - _self_
+
+model:
+  name: "yolov8n" # e.g. "yolov8n", "yolo11l", "yolo26x", "rtdetr-l", "rfdetr-nano"
+  family: "auto" # auto, ultralytics, rfdetr
+  num_classes: ${dataset.num_classes} # RF-DETR only; ignored by Ultralytics exports
+  pretrain_weights: null # RF-DETR only: optional checkpoint path (alternative to export.checkpoint_path)
+  resolution: null # RF-DETR only: optional input resolution override
+
+export:
+  checkpoint_path: null # Path to a trained checkpoint (.pt for Ultralytics, .pth for RF-DETR); null uses pretrained/default weights
+  pretrained_ckpt_path: null # Fallback checkpoint path, used only when checkpoint_path is null
+  output_dir: "experiments/${dataset.name}/${model.name}/export"
+  imgsz: 640 # int or [height, width]
+  batch: 1
+  dynamic: false # Dynamic input shapes/axes
+  simplify: true # Ultralytics only: run onnx-simplifier on the exported graph
+  half: false # Ultralytics only: export FP16 weights
+  nms: null # Ultralytics only: bake NMS into the graph (true/false/null; ignored for YOLOv10, always end-to-end)
+  end2end: null # Ultralytics only: override end-to-end export behavior; null leaves Ultralytics' default
+  device: "cpu" # "cpu" or "cuda"
+  opset: 17
+  verbose: false
+
+hydra:
+  run:
+    dir: ${export.output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}

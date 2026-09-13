@@ -1,0 +1,24 @@
+# dataset/gc10det.yaml
+# Hydra `dataset` config group entry for GC10-DET (metallic surface defect detection).
+#
+# Converted from the Dataset Ninja export (a single `ds/img` + `ds/ann`
+# Supervisely-JSON folder, no upstream split) via:
+#   detectionbench-prepare-coco --dataset gc10det --raw-dir <ninja_export> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter creates a deterministic seeded 80/10/10 split -- GC10-DET has
+# no official split (see src/detectionbench/datasets/gc10det.py).
+#
+# License: CC BY 4.0 (attribution required; redistribution permitted).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: gc10det
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/gc10-det-DatasetNinja/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/gc10-det-DatasetNinja/yolo_dataset_coco
+num_classes: 10
+
+eval_split: test

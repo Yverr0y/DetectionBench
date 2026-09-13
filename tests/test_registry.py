@@ -9,10 +9,19 @@ from detectionbench.datasets.registry import register
 _KNOWN_KEYS = {
     "brackish",
     "doclaynet",
+    "duo",
     "exdark",
+    "gc10det",
     "gwhd",
+    "hrsid",
     "lisa",
+    "llvip",
+    "publaynet",
+    "rdd2022",
     "seadronessee",
+    "seaships",
+    "sku110k",
+    "uavdt",
     "visdrone",
 }
 

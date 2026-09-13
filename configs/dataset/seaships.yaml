@@ -1,0 +1,26 @@
+# dataset/seaships.yaml
+# Hydra `dataset` config group entry for SeaShips (maritime ship detection).
+#
+# Converted from the official SeaShips(7000) VOC-XML release (`JPEGImages/`
+# + `Annotations/*.xml` + `ImageSets/Main/{train,val,test}.txt`) via:
+#   detectionbench-prepare-coco --dataset seaships --raw-dir <SeaShips_7000_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter uses the official train/val/test split as-is (1,750 / 1,750 /
+# 3,500 -- see src/detectionbench/datasets/seaships.py).
+#
+# License: unknown -- see https://huggingface.co/datasets/dronefreak/SeaShips
+# for the full explanation (no explicit license stated anywhere upstream;
+# original host defunct). Mirrored on Hugging Face tagged `license: unknown`.
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: seaships
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/SeaShips_7000/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/SeaShips_7000/yolo_dataset_coco
+num_classes: 6
+
+eval_split: test

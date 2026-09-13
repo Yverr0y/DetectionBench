@@ -1,0 +1,27 @@
+# dataset/sku110k.yaml
+# Hydra `dataset` config group entry for SKU-110K (dense retail-shelf detection).
+#
+# Converted from the official `SKU110K_fixed.tar.gz` release (`images/` +
+# `annotations/annotations_{train,val,test}.csv`) via:
+#   detectionbench-prepare-coco --dataset sku110k --raw-dir <SKU110K_fixed_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# Single class ("object") -- see src/detectionbench/datasets/sku110k.py.
+#
+# License: "exclusive use by the recipient... solely for academic and
+# non-commercial purposes" -- more restrictive than a generic non-commercial
+# clause. Not mirrored on Hugging Face; get the raw data via
+# `detectionbench-download-dataset --dataset sku110k` (a direct S3 URL --
+# no Google Drive/Baidu confirmation dance needed for this one).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: sku110k
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/SKU110K_fixed/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/SKU110K_fixed/yolo_dataset_coco
+num_classes: 1
+
+eval_split: test

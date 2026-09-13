@@ -1,0 +1,28 @@
+# dataset/hrsid.yaml
+# Hydra `dataset` config group entry for HRSID (high-resolution SAR ship detection).
+#
+# Converted from the official HRSID_JPG release (`JPEGImages/` + COCO-format
+# `annotations/{train2017,test2017}.json`) via:
+#   detectionbench-prepare-coco --dataset hrsid --raw-dir <HRSID_JPG_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter keeps the official train2017/test2017 split and carves a
+# seeded 15% validation slice out of train2017 (see
+# src/detectionbench/datasets/hrsid.py).
+#
+# License: unknown -- see https://huggingface.co/datasets/dronefreak/HRSID
+# for the full explanation (the repo LICENSE is GPL-3.0 with unclear
+# applicability to the data, and the imagery is partly TerraSAR-X/TanDEM-X,
+# DLR-restricted). Mirrored on Hugging Face tagged `license: unknown`.
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: hrsid
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/HRSID_JPG/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/HRSID_JPG/yolo_dataset_coco
+num_classes: 1
+
+eval_split: test

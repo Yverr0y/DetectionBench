@@ -1,0 +1,28 @@
+# dataset/uavdt.yaml
+# Hydra `dataset` config group entry for UAVDT (aerial vehicle detection).
+#
+# Converted from the Dataset Ninja Supervisely export (`{train,test}/img` +
+# `{train,test}/ann`) via:
+#   detectionbench-prepare-coco --dataset uavdt --raw-dir <ninja_export> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter keeps UAVDT's official test split and carves a sequence-aware
+# validation set from train (seeded, disjoint sequences -- see
+# src/detectionbench/datasets/uavdt.py).
+#
+# License: distributed "for research purpose only" -- no redistribution
+# grant. Not mirrored on Hugging Face; get the raw data via
+# `detectionbench-download-dataset --dataset uavdt` (prints the official
+# Google Drive links -- no direct-URL host exists for this one).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: uavdt
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/uavdt-DatasetNinja/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/uavdt-DatasetNinja/yolo_dataset_coco
+num_classes: 3
+
+eval_split: test

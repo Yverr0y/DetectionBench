@@ -95,8 +95,14 @@ onnx = [
     "onnxsim>=0.4.33",
     "onnx-graphsurgeon>=0.5.2",
 ]
+download = [
+    # Handles Google Drive's large-file confirmation-token flow, used by
+    # detectionbench-download-dataset for sources with no direct-URL host
+    # (e.g. UAVDT, DUO -- see src/detectionbench/scripts/download_dataset.py).
+    "gdown>=5.2.0",
+]
 all = [
-    "detectionbench[dev,coco,rfdetr,benchmark,onnx]",
+    "detectionbench[dev,coco,rfdetr,benchmark,onnx,download]",
 ]
 
 [project.scripts]
@@ -106,6 +112,7 @@ detectionbench-infer = "detectionbench.scripts.inference:main"
 detectionbench-benchmark = "detectionbench.scripts.benchmark:main"
 detectionbench-export-onnx = "detectionbench.scripts.export_onnx:main"
 detectionbench-prepare-coco = "detectionbench.scripts.prepare_coco:main"
+detectionbench-download-dataset = "detectionbench.scripts.download_dataset:main"
 detectionbench-dataset-banner = "detectionbench.scripts.dataset_banner:main"
 detectionbench-repo-showcase = "detectionbench.scripts.repo_showcase:main"
 detectionbench-generate-model-cards = "detectionbench.scripts.generate_model_cards:main"

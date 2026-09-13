@@ -1,0 +1,27 @@
+# dataset/duo.yaml
+# Hydra `dataset` config group entry for DUO (underwater robot-picking detection).
+#
+# Converted from the official release (`images/{train,test}` +
+# `annotations/instances_{train,test}.json`, already COCO-format) via:
+#   detectionbench-prepare-coco --dataset duo --raw-dir <DUO_release_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# DUO has no official validation split; the adapter carves a seeded 15%
+# slice out of train (see src/detectionbench/datasets/duo.py).
+#
+# License: no explicit grant from the DUO authors or the URPC contest data
+# it re-annotates. Not mirrored on Hugging Face; get the raw data via
+# `detectionbench-download-dataset --dataset duo` (prints the official
+# Google Drive / Baidu Netdisk links).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: duo
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/DUO/DUO/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/DUO/DUO/yolo_dataset_coco
+num_classes: 4
+
+eval_split: test

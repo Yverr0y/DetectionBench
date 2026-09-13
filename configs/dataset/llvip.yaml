@@ -1,0 +1,29 @@
+# dataset/llvip.yaml
+# Hydra `dataset` config group entry for LLVIP (infrared pedestrian detection).
+#
+# Converted from the official release (`infrared/{train,test}/*.jpg` +
+# `Annotations/*.xml`; the paired `visible/` images are not used -- see
+# src/detectionbench/datasets/llvip.py for why) via:
+#   detectionbench-prepare-coco --dataset llvip --raw-dir <LLVIP_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# LLVIP has no official validation split; the adapter carves a seeded 15%
+# slice out of train.
+#
+# License: non-commercial academic/personal use only, attribution required,
+# no redistribution grant (see the official "Term of Use and License.md").
+# Not mirrored on Hugging Face; get the raw data via
+# `detectionbench-download-dataset --dataset llvip` (Google Drive / Baidu
+# Netdisk links).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: llvip
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/LLVIP/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/LLVIP/yolo_dataset_coco
+num_classes: 1
+
+eval_split: test

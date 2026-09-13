@@ -1,0 +1,30 @@
+# dataset/publaynet.yaml
+# Hydra `dataset` config group entry for PubLayNet (document layout analysis).
+#
+# Converted from a staged PubLayNet release (`{train,val}.json` COCO
+# annotations + `{train,val}/*.jpg`) via:
+#   detectionbench-prepare-coco --dataset publaynet --raw-dir <staged_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# IBM's original DAX hosting is deprecated; stage a copy from a third-party
+# Hugging Face/Kaggle re-upload into this layout yourself (see
+# src/detectionbench/datasets/publaynet.py). `test.json` (if you have it)
+# has no public ground truth (ICDAR 2021 blind competition set) and is not
+# converted.
+#
+# License: CDLA-Permissive-1.0 for the annotations (IBM); the page images
+# are governed separately by the PMC Open Access Subset's own terms (IBM
+# does not own their copyright). Not yet mirrored on Hugging Face -- the
+# full dataset is ~100-200 GB, too large to stage/verify in this pass.
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: publaynet
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/PubLayNet/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/PubLayNet/yolo_dataset_coco
+num_classes: 5
+
+eval_split: valid
