@@ -20,6 +20,9 @@ outside these three is dropped.
 License: UAVDT is distributed "for research purpose only" with no
 redistribution grant -- fine to build/evaluate against locally, **not** to
 re-host. No Hugging Face mirror without the authors' written permission.
+
+Stats: see docs/datasets/uavdt/README.md (class distribution, per-sequence
+breakdown, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -63,10 +66,31 @@ class UAVDTAdapter(DatasetAdapter):
         key="uavdt",
         display_name="UAVDT",
         classes=_CLASSES,
+        description=(
+            "UAVDT (UAV Detection and Tracking) is a large-scale benchmark for "
+            "vehicle detection, single-object tracking, and multi-object "
+            "tracking from footage captured by an unmanned aerial vehicle. "
+            "It consists of about 80,000 representative frames from 100 video "
+            "sequences, densely annotated with car/truck/bus bounding boxes "
+            "plus per-sequence attributes (weather, flying altitude, camera "
+            "view, vehicle category, occlusion). It's used to study detection "
+            "and tracking under conditions aerial traffic-surveillance systems "
+            "actually face: small objects, dense traffic, occlusion, and "
+            "large viewpoint/altitude changes -- this adapter uses the "
+            "detection-subset labels only."
+        ),
         homepage="https://sites.google.com/view/grli-uavdt",
         citation=(
-            "Du et al., 'The Unmanned Aerial Vehicle Benchmark: Object "
-            "Detection and Tracking', ECCV 2018 (arXiv:1804.00518)."
+            "@InProceedings{du2018unmanned,\n"
+            "  title={The Unmanned Aerial Vehicle Benchmark: Object Detection "
+            "and Tracking},\n"
+            "  author={Du, Dawei and Qi, Yuankai and Yu, Hongyang and Yang, "
+            "Yifan and Duan, Kaiwen and Li, Guorong and Zhang, Weigang and "
+            "Huang, Qingming and Tian, Qi},\n"
+            "  booktitle={Proceedings of the European Conference on Computer "
+            "Vision (ECCV)},\n"
+            "  year={2018}\n"
+            "}"
         ),
         license="Research use only -- no redistribution; see homepage.",
     )

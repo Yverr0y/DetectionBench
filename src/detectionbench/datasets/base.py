@@ -52,7 +52,9 @@ class DatasetSpec:
     display_name: str
     classes: list[str]
     class_colors: dict[int, tuple[int, int, int]] | None = None
+    description: str | None = None
     homepage: str | None = None
+    github: str | None = None
     citation: str | None = None
     license: str | None = None
 

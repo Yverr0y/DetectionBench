@@ -14,6 +14,9 @@
 # `detectionbench-download-dataset --dataset uavdt` (prints the official
 # Google Drive links -- no direct-URL host exists for this one).
 #
+# Stats: see ../../docs/datasets/uavdt/README.md (class distribution,
+# per-sequence breakdown, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! converted copy before training/evaluating on this dataset.
