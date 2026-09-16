@@ -84,6 +84,8 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 
 Each dataset is a self-contained adapter under `src/detectionbench/datasets/` that converts its raw format into a canonical COCO layout — everything downstream (COCO↔YOLO conversion, training, evaluation, inference, benchmarking) is dataset-agnostic. See `src/detectionbench/datasets/doclaynet.py` for a fully worked adapter.
 
+Every dataset also has a statistics report under [`docs/datasets/<dataset>/`](../docs/datasets/) — class distribution, split sizes, box geometry, and (where meaningful) a per-sequence/location breakdown, computed from real data via `detectionbench-dataset-stats`.
+
 ### Dataset formats: YOLO vs. COCO
 
 The dataset repos linked above are published on Hugging Face in **Ultralytics YOLO format only** (`images/` + `labels/` + `data.yaml`) — this is what YOLO and RT-DETR training/evaluation consume, via each dataset config's `dataset_yaml`.
@@ -111,9 +113,7 @@ Best model per dataset from DetectionBench's [v1 model shortlist](../ROADMAP.md)
 | Global Wheat Head Dataset | YOLOv11x | 74.25 | 34.92 | [dronefreak/gwhd-yolo11x](https://huggingface.co/dronefreak/gwhd-yolo11x) |
 | LISA Traffic Lights | RF-DETR Medium | 33.01 | 14.12 | [dronefreak/lisa-rfdetr-medium](https://huggingface.co/dronefreak/lisa-rfdetr-medium) |
 | SeaDronesSee | RF-DETR Medium | 83.47 | 47.49 | [dronefreak/seadronessee-rfdetr-medium](https://huggingface.co/dronefreak/seadronessee-rfdetr-medium) |
-| VisDrone-DET | YOLOv11x (external) | 38.44 | 22.6 | [dronefreak/yolo11x-visdrone](https://huggingface.co/dronefreak/yolo11x-visdrone) |
-
-> VisDrone-DET's top row is *(external)* — trained via the separate [VisDrone-dataset-python-toolkit](https://github.com/dronefreak/VisDrone-dataset-python-toolkit), not inside DetectionBench. See [LEADERBOARDS.md](../LEADERBOARDS.md#visdrone-det) for the full breakdown and caveats.
+| VisDrone-DET | YOLOv11x | 38.44 | 22.6 | [dronefreak/yolo11x-visdrone](https://huggingface.co/dronefreak/yolo11x-visdrone) |
 <!-- LEADERBOARD:END -->
 
 ## Installation
