@@ -23,6 +23,9 @@ https://huggingface.co/collections/dronefreak/visdrone-detection-model-zoo.
 This adapter exists so DetectionBench itself can also train/evaluate against
 VisDrone-DET (e.g. to add the RF-DETR variant that zoo doesn't have yet) --
 not to reproduce or replace that existing YOLO benchmark.
+
+Stats: see docs/datasets/visdrone/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -74,11 +77,25 @@ class VisDroneDetAdapter(DatasetAdapter):
         key="visdrone",
         display_name="VisDrone-DET",
         classes=_CLASSES,
+        description=(
+            "VisDrone-DET is a large-scale drone-captured benchmark for object "
+            "detection: images and video from diverse cities, scenarios, and "
+            "weather/lighting conditions across China, annotated across common object "
+            "categories (pedestrian, car, van, truck, and more). It's used to "
+            "benchmark detection from an aerial/drone viewpoint, where small, dense, "
+            "and often-occluded objects are the norm."
+        ),
         homepage="https://github.com/VisDrone/VisDrone-Dataset",
         citation=(
-            "Zhu, Pengfei and Wen, Longyin and Bian, Xiao and Ling, Haibin and "
-            "Hu, Qinghua, 'Vision Meets Drones: A Challenge', arXiv:1804.07437, "
-            "2018."
+            "@article{zhu2021detection,\n"
+            "  title={Detection and Tracking Meet Drones Challenge},\n"
+            "  author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},\n"  # noqa: E501
+            "  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},\n"  # noqa: E501
+            "  volume={44},\n"
+            "  number={11},\n"
+            "  pages={7380--7399},\n"
+            "  year={2021}\n"
+            "}"
         ),
         license="CC BY-NC-SA 3.0 -- non-commercial research use only, see homepage.",
     )

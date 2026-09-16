@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import statistics
 from collections import Counter
 from dataclasses import dataclass, field
@@ -67,10 +68,16 @@ class ReportMeta:
     """Display name + descriptive metadata for the report header/footer."""
 
     name: str
+    key: str | None = None  # registered dataset key, e.g. --dataset uavdt
     description: str | None = None
     homepage: str | None = None
     github: str | None = None
     citation: str | None = None
+
+    @property
+    def cli_key(self) -> str:
+        """The value for --dataset on the CLI (the registry key, or a slug of name)."""
+        return self.key or self.name.lower().replace(" ", "-")
 
 
 @dataclass
@@ -153,6 +160,7 @@ def resolve_meta(args: argparse.Namespace) -> ReportMeta:
     spec = get_spec(args.dataset) if args.dataset else None
     return ReportMeta(
         name=args.name or (spec.display_name if spec else args.dataset),
+        key=args.dataset,
         description=args.description or (spec.description if spec else None),
         homepage=args.homepage or (spec.homepage if spec else None),
         github=args.github or (spec.github if spec else None),
@@ -161,9 +169,22 @@ def resolve_meta(args: argparse.Namespace) -> ReportMeta:
 
 
 def _group_key(file_name: str) -> str:
-    """Best-effort grouping key: the filename prefix before the first '_'."""
+    """
+    Best-effort grouping key: the filename tokens before a running frame id.
+
+    Splits the stem on '_' and '--' (both seen across adapters, e.g. LISA's
+    'dayClip1--00000') and joins every token up to (not including) the first
+    purely-numeric token -- that numeric token is almost always the running
+    frame/image id, and everything before it is the sequence/source name
+    (e.g. 'M0101_img000001' -> 'M0101', 'China_Drone_000001' -> 'China_Drone').
+    Falls back to the first token when no purely-numeric token exists.
+    """
     stem = Path(file_name).stem
-    return stem.split("_", 1)[0] if "_" in stem else stem
+    tokens = re.split(r"_|--", stem)
+    digit_idx = next((i for i, t in enumerate(tokens) if t.isdigit()), None)
+    if digit_idx:
+        return "_".join(tokens[:digit_idx])
+    return tokens[0]
 
 
 def load_split(
@@ -276,7 +297,7 @@ def build_markdown(  # noqa: PLR0913
         lines += ["## About", "", meta.description, ""]
     lines += [
         f"Computed from the canonical COCO layout produced by "
-        f"`detectionbench-prepare-coco --dataset {meta.name.lower()}`. "
+        f"`detectionbench-prepare-coco --dataset {meta.cli_key}`. "
         "See the adapter and Hydra config for how these splits are built.",
         "",
         "## Split Summary",
@@ -415,7 +436,7 @@ def main() -> None:
     )
     reproduce_cmd = (
         f"python -m detectionbench.scripts.dataset_stats "
-        f"--coco-dir <{meta.name.lower()}_coco> {dataset_flag} "
+        f"--coco-dir <{meta.cli_key}_coco> {dataset_flag} "
         f"--output-dir {output_dir}"
         + (f" --group-label {args.group_label}" if args.group_label else "")
     )

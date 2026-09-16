@@ -37,6 +37,9 @@ build/evaluate against locally, **not** to re-host. No Hugging Face mirror
 without the authors' written permission -- see
 ``detectionbench-download-dataset --dataset llvip`` for the official
 download locations instead.
+
+Stats: see docs/datasets/llvip/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -75,10 +78,23 @@ class LLVIPAdapter(DatasetAdapter):
         key="llvip",
         display_name="LLVIP",
         classes=_CLASSES,
+        description=(
+            "LLVIP is a registered visible/infrared image-pair dataset for pedestrian "
+            "detection in low-light conditions: 30,976 image pairs (paired visible + "
+            "infrared frames, pixel-aligned) captured at night, annotated with "
+            "pedestrian bounding boxes. Its central finding is that infrared imagery "
+            "is dramatically more useful than visible imagery under these conditions "
+            "-- this adapter uses the infrared images only."
+        ),
         homepage="https://github.com/bupt-ai-cz/LLVIP",
         citation=(
-            "Jia et al., 'LLVIP: A Visible-infrared Paired Dataset for "
-            "Low-light Vision', ICCV Workshops 2021."
+            "@inproceedings{jia2021llvip,\n"
+            "  title={LLVIP: A Visible-infrared Paired Dataset for Low-light Vision},\n"
+            "  author={Jia, Xinyu and Zhu, Chuang and Li, Minzhen and Tang, Wenqi and Zhou, Wenli},\n"  # noqa: E501
+            "  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision Workshops},\n"  # noqa: E501
+            "  pages={3496--3504},\n"
+            "  year={2021}\n"
+            "}"
         ),
         license=(
             "Non-commercial academic/personal use only, attribution "

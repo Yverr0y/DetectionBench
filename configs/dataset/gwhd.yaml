@@ -6,6 +6,9 @@
 #   detectionbench-prepare-coco --dataset gwhd --raw-dir <raw> --output-dir <coco_out>
 #   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
 
+# Stats: see ../../docs/datasets/gwhd/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! copies before training/evaluating on this dataset.

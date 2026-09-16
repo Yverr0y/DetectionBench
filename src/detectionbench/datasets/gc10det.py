@@ -17,6 +17,9 @@ specific external split if you need one.
 License: CC BY 4.0 -- attribution required; redistribution and derivative
 datasets are permitted. The Supervisely class title ``"waist folding"`` is
 normalized to ``waist_folding`` for consistency with the other nine.
+
+Stats: see docs/datasets/gc10det/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -70,11 +73,25 @@ class GC10DetAdapter(DatasetAdapter):
         key="gc10det",
         display_name="GC10-DET",
         classes=_CLASSES,
+        description=(
+            "GC10-DET is an industrial surface-inspection benchmark: grayscale images "
+            "of rolled steel sheet surfaces exhibiting 10 common manufacturing defect "
+            "types, with box-level annotations. It's used to benchmark automated "
+            "defect localization for quality control on production lines."
+        ),
         homepage="https://github.com/lvxiaoming2019/GC10-DET-Metallic-Surface-Defect-Datasets",
         citation=(
-            "Lv, Duan, Jiang, Fu, Gan, 'Deep Metallic Surface Defect "
-            "Detection: The New Benchmark and Detection Network', Sensors, "
-            "20(6):1562, 2020."
+            "@article{lv2020deep,\n"
+            "  title = {Deep Metallic Surface Defect Detection: The New Benchmark and Detection Network},\n"  # noqa: E501
+            "  author = {Lv, Xiaoming and Duan, Fajie and Jiang, Jia-jia and Fu, Xiao and Gan, Lin},\n"  # noqa: E501
+            "  journal = {Sensors},\n"
+            "  volume = {20},\n"
+            "  number = {6},\n"
+            "  pages = {1562},\n"
+            "  year = {2020},\n"
+            "  publisher = {MDPI},\n"
+            "  doi = {10.3390/s20061562}\n"
+            "}"
         ),
         license="CC BY 4.0 -- attribution required; redistribution permitted.",
     )

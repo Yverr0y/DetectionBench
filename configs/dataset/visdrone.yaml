@@ -18,6 +18,9 @@
 # Verified 2026-08-03: train 6471 / valid 548 / test 1610 images, categories
 # match the 11-class spec, both COCO and YOLO representations checked.
 
+# Stats: see ../../docs/datasets/visdrone/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! copies before training/evaluating on this dataset.

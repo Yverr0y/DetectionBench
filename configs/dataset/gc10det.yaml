@@ -10,6 +10,9 @@
 #
 # License: CC BY 4.0 (attribution required; redistribution permitted).
 #
+# Stats: see ../../docs/datasets/gc10det/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! converted copy before training/evaluating on this dataset.

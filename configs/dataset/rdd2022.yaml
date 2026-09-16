@@ -13,6 +13,9 @@
 #
 # License: CC BY-SA 4.0 (share-alike) -- keep any mirror under CC BY-SA 4.0.
 #
+# Stats: see ../../docs/datasets/rdd2022/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! converted copy before training/evaluating on this dataset.

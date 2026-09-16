@@ -15,6 +15,9 @@ literal sentinel ``"no_box"`` instead of a box list. ``domain`` identifies
 the contributing institution/field site (metadata only, not used here).
 See https://www.global-wheat.com/ and ``metadata_dataset.csv`` in the raw
 download for per-domain country/growth-stage info.
+
+Stats: see docs/datasets/gwhd/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -56,12 +59,23 @@ class GWHDAdapter(DatasetAdapter):
         key="gwhd",
         display_name="Global Wheat Head Dataset",
         classes=_CLASSES,
+        description=(
+            "GWHD 2021 is a dense, single-class benchmark for wheat head localization, "
+            "assembled from field images captured across multiple countries and "
+            "research institutions to maximize genotype, growth-stage, and imaging- "
+            "condition diversity. It's used to benchmark wheat head detection methods "
+            "that generalize across environments -- a key requirement for real-world "
+            "agricultural phenotyping and yield estimation."
+        ),
         homepage="https://www.global-wheat.com/",
         citation=(
-            "David et al., 'Global Wheat Head Detection (GWHD) Dataset: A Large "
-            "and Diverse Dataset of High-Resolution RGB-Labelled Images to "
-            "Develop and Benchmark Wheat Head Detection Methods', Plant "
-            "Phenomics, 2020 (and the 2021 update)."
+            "@article{david2021global,\n"
+            "  title = {Global Wheat Head Dataset 2021: more diversity to improve the benchmarking of wheat head localization methods},\n"  # noqa: E501
+            "  author = {David, Etienne and Serouart, Mario and Smith, Daniel and Madec, Simon and Velumani, Kaaviya and Liu, Shouyang and Wang, Xu and Pinto Espinosa, Francisco and Shafiee, Shahameh and Tahir, Izzat S. A. and Tsujimoto, Hisashi and Nasuda, Shuhei and Zheng, Bangyou and Kichgessner, Norbert and Aasen, Helge and Hund, Andreas and Sadhegi-Tehran, Pouria and Nagasawa, Koichi and Ishikawa, Goro and Dandrifosse, S{\\'e}bastien and Carlier, Alexis and Mercatoris, Benoit and Kuroki, Ken and Wang, Haozhou and Ishii, Masanori and Badhon, Minhajul A. and Pozniak, Curtis and LeBauer, David Shaner and Lilimo, Morten and Poland, Jesse and Chapman, Scott and de Solan, Benoit and Baret, Fr{\\'e}d{\\'e}ric and Stavness, Ian and Guo, Wei},\n"  # noqa: E501
+            "  journal = {Plant Phenomics},\n"
+            "  year = {2021},\n"
+            "  doi = {10.34133/2021/9846158}\n"
+            "}"
         ),
         license="CC BY 4.0 -- see homepage before redistributing.",
     )

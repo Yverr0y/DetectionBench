@@ -11,6 +11,9 @@
 # dataset. data.yaml still lists a `test:` path for Ultralytics' schema,
 # but nothing populates it; don't evaluate against it.
 
+# Stats: see ../../docs/datasets/seadronessee/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! copies before training/evaluating on this dataset.

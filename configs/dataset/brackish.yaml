@@ -16,6 +16,9 @@
 # NOTE: ~15% of images have no annotations (background-only frames); this
 # is expected for Brackish, unlike ExDark where every image has >=1 box.
 
+# Stats: see ../../docs/datasets/brackish/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! copies before training/evaluating on this dataset.

@@ -13,6 +13,9 @@
 # `detectionbench-download-dataset --dataset duo` (prints the official
 # Google Drive / Baidu Netdisk links).
 #
+# Stats: see ../../docs/datasets/duo/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! converted copy before training/evaluating on this dataset.

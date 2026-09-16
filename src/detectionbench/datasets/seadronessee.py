@@ -19,6 +19,9 @@ exported class list rather than remapping it into row 0 of a taxonomy
 nobody should be training a detector to predict.
 
 See https://seadronessee.cs.uni-tuebingen.de/.
+
+Stats: see docs/datasets/seadronessee/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -58,10 +61,23 @@ class SeaDronesSeeAdapter(DatasetAdapter):
         key="seadronessee",
         display_name="SeaDronesSee",
         classes=_CLASSES,
+        description=(
+            "SeaDronesSee is a maritime search-and-rescue benchmark: images and video "
+            "captured by UAVs over open water, annotated for detecting swimmers, "
+            "boats, jet skis, life-saving appliances, and buoys. It's used to "
+            "benchmark drone-based maritime search-and-rescue detection systems; this "
+            "adapter covers the Object Detection v2 track."
+        ),
         homepage="https://seadronessee.cs.uni-tuebingen.de/",
+        github="https://github.com/Ben93kie/SeaDronesSee",
         citation=(
-            "Varga et al., 'SeaDronesSee: A Maritime Benchmark for Detecting "
-            "Humans in Maritime Environments', WACV 2022."
+            "@inproceedings{varga2022seadronessee,\n"
+            "  title={SeaDronesSee: A maritime benchmark for detecting humans in open water},\n"  # noqa: E501
+            "  author={Varga, Leon Amadeus and Kiefer, Benjamin and Messmer, Martin and Zell, Andreas},\n"  # noqa: E501
+            "  booktitle={Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision},\n"  # noqa: E501
+            "  pages={2260--2270},\n"
+            "  year={2022}\n"
+            "}"
         ),
         license="Custom research license -- see homepage before redistributing.",
     )

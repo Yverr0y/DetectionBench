@@ -19,6 +19,9 @@ annotation file, and emit the canonical
 
 NOTE: the class list below has been confirmed against a real Roboflow
 "Exclusively-Dark-Image" export (12 classes, same names/order).
+
+Stats: see docs/datasets/exdark/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -52,10 +55,25 @@ class ExDarkAdapter(DatasetAdapter):
         key="exdark",
         display_name="ExDark",
         classes=_CLASSES,
+        description=(
+            "ExDark (Exclusively Dark Image Dataset) is a low-light robustness "
+            "benchmark: 7,344 images captured across 10 low-light conditions, from "
+            "very low light to twilight, with both image-level class labels and "
+            "object-level bounding boxes across 12 classes. It's used to study object "
+            "detection robustness under degraded illumination, a regime standard COCO- "
+            "trained detectors handle poorly."
+        ),
         homepage="https://github.com/cs-chan/Exclusively-Dark-Image-Dataset",
         citation=(
-            "Loh & Chan, 'Getting to Know Low-light Images with The "
-            "Exclusively Dark Dataset', CVIU 2019."
+            "@article{Exdark,\n"
+            "  title = {Getting to Know Low-light Images with The Exclusively Dark Dataset},\n"  # noqa: E501
+            "  author = {Loh, Yuen Peng and Chan, Chee Seng},\n"
+            "  journal = {Computer Vision and Image Understanding},\n"
+            "  volume = {178},\n"
+            "  pages = {30-42},\n"
+            "  year = {2019},\n"
+            "  doi = {https://doi.org/10.1016/j.cviu.2018.10.010}\n"
+            "}"
         ),
         license="BSD-3-Clause -- see homepage before redistributing.",
     )

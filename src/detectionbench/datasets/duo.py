@@ -19,6 +19,9 @@ withdrawn. Fine to build/evaluate against locally, **not** to re-host. No
 Hugging Face mirror without the authors' written permission -- see
 ``detectionbench-download-dataset --dataset duo`` for the official download
 locations instead.
+
+Stats: see docs/datasets/duo/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -51,11 +54,22 @@ class DUOAdapter(DatasetAdapter):
         key="duo",
         display_name="DUO",
         classes=_CLASSES,
+        description=(
+            "DUO is an underwater object-detection benchmark for robot-picking "
+            "applications: 7,782 images re-annotating and merging the URPC2017-2020 "
+            "and UDD datasets to fix annotation-quality and train/test-split issues, "
+            "covering four classes of harvestable organisms (holothurian, echinus, "
+            "scallop, starfish). It's used to benchmark detectors for automated "
+            "underwater harvesting robots."
+        ),
         homepage="https://github.com/chongweiliu/DUO",
         citation=(
-            "Liu et al., 'A Dataset and Benchmark of Underwater Object "
-            "Detection for Robot Picking', ICME Workshops 2021 "
-            "(arXiv:2106.05681)."
+            "@INPROCEEDINGS{liu2021dataset,\n"
+            "  author={Liu, Chongwei and Wang, Zhihui and Wang, Shijie and Tang, Tao and Tao, Yulong and Yang, Caifei and Li, Haojie and Liu, Xing and Fan, Xin},\n"  # noqa: E501
+            "  booktitle={2021 IEEE International Conference on Multimedia \\& Expo Workshops (ICMEW)},\n"  # noqa: E501
+            "  title={A Dataset and Benchmark of Underwater Object Detection for Robot Picking},\n"  # noqa: E501
+            "  year={2021}\n"
+            "}"
         ),
         license="Unclear -- no explicit grant; re-annotates gated URPC contest data.",
     )

@@ -18,6 +18,9 @@ its homepage); the official GitHub repo (jiaming-wang/SeaShips) offers only
 that dead link plus a gated Baidu Netdisk link, and states no explicit
 license. Fine to build/evaluate against locally, **not** to re-host. No
 Hugging Face mirror without the authors' written permission.
+
+Stats: see docs/datasets/seaships/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -57,11 +60,26 @@ class SeaShipsAdapter(DatasetAdapter):
         key="seaships",
         display_name="SeaShips",
         classes=_CLASSES,
+        description=(
+            "SeaShips is a maritime ship-detection benchmark of 7,000 images sampled "
+            "from a deployed coastline video-surveillance system, covering six ship "
+            "types (ore carrier, bulk cargo carrier, general cargo ship, container "
+            "ship, fishing boat, passenger ship). It's used to benchmark ship "
+            "detection under realistic maritime variation in scale, viewpoint, "
+            "illumination, and occlusion."
+        ),
         homepage="https://github.com/jiaming-wang/SeaShips",
         citation=(
-            "Shao et al., 'SeaShips: A Large-Scale Precisely Annotated "
-            "Dataset for Ship Detection', IEEE Transactions on Multimedia, "
-            "20(10):2593-2604, 2018."
+            "@ARTICLE{shao2018seaships,\n"
+            "  author={Shao, Zhenfeng and Wu, Wenjing and Wang, Zhongyuan and Du, Wan and Li, Chengyuan},\n"  # noqa: E501
+            "  journal={IEEE Transactions on Multimedia},\n"
+            "  title={SeaShips: A Large-Scale Precisely Annotated Dataset for Ship Detection},\n"  # noqa: E501
+            "  year={2018},\n"
+            "  volume={20},\n"
+            "  number={10},\n"
+            "  pages={2593-2604},\n"
+            "  doi={10.1109/TMM.2018.2865686}\n"
+            "}"
         ),
         license="Unclear -- no explicit grant; original host defunct. See homepage.",
     )

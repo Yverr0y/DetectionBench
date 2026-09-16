@@ -19,6 +19,9 @@ whichever your local conversion targets; this adapter assumes "box".
 
 NOTE: the class list has been confirmed against a real converted "box"
 export (7 classes, same names/order as both the "box" and "bulb" variants).
+
+Stats: see docs/datasets/lisa/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -47,11 +50,27 @@ class LISATrafficLightsAdapter(DatasetAdapter):
         key="lisa",
         display_name="LISA Traffic Lights",
         classes=_CLASSES,
+        description=(
+            "The LISA Traffic Light Dataset is a benchmark for traffic-light detection "
+            "and recognition: continuous day/night video sequences recorded in San "
+            "Diego, California, under varying light and weather. It's used to "
+            "benchmark autonomous-vehicle and ADAS perception systems on a safety- "
+            "critical, small-object detection task; this adapter carries the box- "
+            "annotation variant."
+        ),
         homepage="https://www.kaggle.com/datasets/mbornoe/lisa-traffic-light-dataset",
         citation=(
-            "Jensen et al., 'Vision for Looking at Traffic Lights: Issues, "
-            "Survey, and Perspectives', IEEE Trans. Intelligent "
-            "Transportation Systems, 2016."
+            "@article{jensen2016vision,\n"
+            "  title={Vision for looking at traffic lights: Issues, survey, and perspectives},\n"  # noqa: E501
+            "  author={Jensen, Morten Born{\\o} and Philipsen, Mark Philip and M{\\o}gelmose, Andreas and Moeslund, Thomas Baltzer and Trivedi, Mohan Manubhai},\n"  # noqa: E501
+            "  journal={IEEE Transactions on Intelligent Transportation Systems},\n"
+            "  volume={17},\n"
+            "  number={7},\n"
+            "  pages={1800--1815},\n"
+            "  year={2016},\n"
+            "  doi={10.1109/TITS.2015.2509509},\n"
+            "  publisher={IEEE}\n"
+            "}"
         ),
         license="CC BY-NC-SA 4.0 -- see homepage before redistributing.",
     )

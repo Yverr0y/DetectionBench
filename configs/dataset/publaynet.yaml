@@ -16,6 +16,9 @@
 # does not own their copyright). Not yet mirrored on Hugging Face -- the
 # full dataset is ~100-200 GB, too large to stage/verify in this pass.
 #
+# Stats: see ../../docs/datasets/publaynet/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! converted copy before training/evaluating on this dataset.

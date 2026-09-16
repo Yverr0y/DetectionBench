@@ -26,6 +26,9 @@ explicitly does not own the copyright of the page images themselves; those
 are governed by the PubMed Central Open Access Subset's own terms (which
 only includes articles carrying an open license as a condition of
 inclusion in that subset).
+
+Stats: see docs/datasets/publaynet/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -57,10 +60,24 @@ class PubLayNetAdapter(DatasetAdapter):
         key="publaynet",
         display_name="PubLayNet",
         classes=_CLASSES,
+        description=(
+            "PubLayNet is a large-scale document layout analysis benchmark: 335,703 "
+            "training / 11,245 validation page images automatically annotated by "
+            "matching the PDF and XML representations of over 1 million PubMed Central "
+            "Open Access articles, across five layout element types. It's used to "
+            "benchmark document layout detection at a scale few manually-annotated "
+            "datasets can match."
+        ),
         homepage="https://github.com/ibm-aur-nlp/PubLayNet",
         citation=(
-            "Zhong, Tang, Yepes, 'PubLayNet: largest dataset ever for "
-            "document layout analysis', ICDAR 2019."
+            "@inproceedings{zhong2019publaynet,\n"
+            "  title={PubLayNet: largest dataset ever for document layout analysis},\n"
+            "  author={Zhong, Xu and Tang, Jianbin and Yepes, Antonio Jimeno},\n"
+            "  booktitle={2019 International Conference on Document Analysis and Recognition (ICDAR)},\n"  # noqa: E501
+            "  pages={1015--1022},\n"
+            "  year={2019},\n"
+            "  organization={IEEE}\n"
+            "}"
         ),
         license=(
             "CDLA-Permissive-1.0 (annotations, IBM); page images governed "

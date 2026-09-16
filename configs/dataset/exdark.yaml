@@ -12,6 +12,9 @@
 # Verified 2026-08-03: train 5877 / valid 736 / test 734 images, categories
 # match the 12-class spec, both COCO and YOLO representations checked.
 
+# Stats: see ../../docs/datasets/exdark/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! copies before training/evaluating on this dataset.

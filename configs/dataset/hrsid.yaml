@@ -14,6 +14,9 @@
 # applicability to the data, and the imagery is partly TerraSAR-X/TanDEM-X,
 # DLR-restricted). Mirrored on Hugging Face tagged `license: unknown`.
 #
+# Stats: see ../../docs/datasets/hrsid/README.md (class distribution,
+# split summary, box geometry).
+#
 # !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
 # !! paths on the original author's machine -- edit both to point at your own
 # !! converted copy before training/evaluating on this dataset.

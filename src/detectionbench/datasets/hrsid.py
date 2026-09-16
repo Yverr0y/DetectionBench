@@ -17,6 +17,9 @@ carries a GPL-3.0 ``LICENSE`` (a software licence) and asks only for
 citation; the imagery is partly TerraSAR-X / TanDEM-X (DLR, scientific-use,
 not freely redistributable). Fine to build/evaluate against locally; **no
 Hugging Face mirror** without the authors confirming redistribution terms.
+
+Stats: see docs/datasets/hrsid/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -51,11 +54,26 @@ class HRSIDAdapter(DatasetAdapter):
         key="hrsid",
         display_name="HRSID",
         classes=_CLASSES,
+        description=(
+            "HRSID is a high-resolution Synthetic Aperture Radar (SAR) benchmark for "
+            "ship detection: 5,604 800x800 image crops (from 136 larger scenes) with "
+            "16,951 ship instances, spanning multiple resolutions, polarizations, sea "
+            "states, and coastal/open-sea conditions, sourced from Sentinel-1B, "
+            "TerraSAR-X, and TanDEM-X. It's used to benchmark ship detection in SAR "
+            "imagery, where speckle noise and side-lobe artifacts make optical-trained "
+            "detectors unreliable."
+        ),
         homepage="https://github.com/chaozhong2010/HRSID",
         citation=(
-            "Wei et al., 'HRSID: A High-Resolution SAR Images Dataset for "
-            "Ship Detection and Instance Segmentation', IEEE Access, 2020 "
-            "(doi:10.1109/ACCESS.2020.3005861)."
+            "@ARTICLE{wei2020hrsid,\n"
+            "  author={Wei, Shunjun and Zeng, Xiangfeng and Qu, Qizhe and Wang, Mou and Su, Hao and Shi, Jun},\n"  # noqa: E501
+            "  journal={IEEE Access},\n"
+            "  title={HRSID: A High-Resolution SAR Images Dataset for Ship Detection and Instance Segmentation},\n"  # noqa: E501
+            "  year={2020},\n"
+            "  volume={8},\n"
+            "  pages={120234-120254},\n"
+            "  doi={10.1109/ACCESS.2020.3005861}\n"
+            "}"
         ),
         license="Unclear (repo LICENSE is GPL-3.0); imagery partly DLR-restricted.",
     )

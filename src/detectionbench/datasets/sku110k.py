@@ -20,6 +20,9 @@ at all). Fine to build/evaluate against locally, **not** to re-host. No
 Hugging Face mirror without the authors' written permission -- see
 ``detectionbench-download-dataset --dataset sku110k`` (a direct S3 URL, no
 Google Drive/Baidu dance needed for this one).
+
+Stats: see docs/datasets/sku110k/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -63,9 +66,22 @@ class SKU110KAdapter(DatasetAdapter):
         key="sku110k",
         display_name="SKU-110K",
         classes=_CLASSES,
+        description=(
+            "SKU-110K is a dense, single-class retail-shelf object-detection "
+            "benchmark: 11,743 images of store shelves with items packed edge to edge. "
+            "It's used to stress-test detectors on extreme object density and overlap "
+            "rather than fine-grained SKU classification -- despite the name, every "
+            "box is labeled a single class, `object`."
+        ),
         homepage="https://github.com/eg4000/SKU110K_CVPR19",
         citation=(
-            "Goldman et al., 'Precise Detection in Densely Packed Scenes', CVPR 2019."
+            "@inproceedings{goldman2019dense,\n"
+            "  title={Precise Detection in Densely Packed Scenes},\n"
+            "  author={Goldman, Eran and Herzig, Roei and Eisenschtat, Aviv and Goldberger, Jacob and Hassner, Tal},\n"  # noqa: E501
+            "  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},\n"  # noqa: E501
+            "  pages={5227--5236},\n"
+            "  year={2019}\n"
+            "}"
         ),
         license=(
             "Exclusive use by the recipient, academic/non-commercial only "

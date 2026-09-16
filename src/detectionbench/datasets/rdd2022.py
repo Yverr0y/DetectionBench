@@ -23,6 +23,9 @@ boxes is printed as ``skipped invalid boxes``.
 License: RDD2022 images are **CC BY-SA 4.0**. Any redistribution (a
 Hugging Face mirror included) must stay under CC BY-SA 4.0 and attribute
 the original authors (Arya et al., arXiv:2209.08538).
+
+Stats: see docs/datasets/rdd2022/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -64,11 +67,23 @@ class RDD2022Adapter(DatasetAdapter):
         key="rdd2022",
         display_name="RDD2022 Road Damage",
         classes=_CLASSES,
+        description=(
+            "RDD2022 is a multi-national street-level road-damage detection benchmark: "
+            "47,420 road images from six countries (Japan, India, Czech Republic, "
+            "Norway, United States, China), captured with vehicle-mounted smartphones, "
+            "dashboard cameras, and drones, annotated for pavement distress across "
+            "four CRDDC2022 damage types. It's used to benchmark automatic road- "
+            "condition assessment across diverse road types, imaging setups, and "
+            "damage conventions."
+        ),
         homepage="https://github.com/sekilab/RoadDamageDetector",
         citation=(
-            "Arya, Maeda, Ghosh, Toshniwal, Sekimoto, 'RDD2022: A "
-            "multi-national image dataset for automatic Road Damage "
-            "Detection', arXiv:2209.08538, 2022."
+            "@article{arya2022rdd2022,\n"
+            "  title = {RDD2022: A multi-national image dataset for automatic Road Damage Detection},\n"  # noqa: E501
+            "  author = {Arya, Deeksha and Maeda, Hiroya and Ghosh, Sanjay Kumar and Toshniwal, Durga and Sekimoto, Yoshihide},\n"  # noqa: E501
+            "  journal = {arXiv preprint arXiv:2209.08538},\n"
+            "  year = {2022}\n"
+            "}"
         ),
         license="CC BY-SA 4.0 -- share-alike; keep any mirror under CC BY-SA 4.0.",
     )

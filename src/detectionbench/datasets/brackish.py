@@ -18,6 +18,9 @@ NOTE: the class list below has been confirmed against a real Roboflow
 "Brackish Underwater" export (6 classes, same names/order). ~15% of images
 per split have zero annotations (background-only frames) -- unlike
 ExDark, empty label files are expected and normal for this dataset.
+
+Stats: see docs/datasets/brackish/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -45,10 +48,23 @@ class BrackishAdapter(DatasetAdapter):
         key="brackish",
         display_name="Brackish Underwater",
         classes=_CLASSES,
+        description=(
+            "Brackish is an underwater object-detection benchmark of fish, crabs, and "
+            "other marine animals, collected with a camera mounted 9 meters below the "
+            "surface in Limfjorden, a brackish strait near Aalborg, Denmark, under "
+            "naturally varying visibility conditions. It's used to benchmark "
+            "underwater detection where color cast, turbidity, and particulate matter "
+            "degrade standard detectors."
+        ),
         homepage="https://www.kaggle.com/datasets/aalborguniversity/brackish-dataset",
         citation=(
-            "Pedersen et al., 'Detection of Marine Animals in a New "
-            "Underwater Dataset with Varying Visibility', CVPRW 2019."
+            "@InProceedings{pedersen2019brackish,\n"
+            "  title = {Detection of Marine Animals in a New Underwater Dataset with Varying Visibility},\n"  # noqa: E501
+            "  author = {Pedersen, Malte and Haurum, Joakim Bruslund and Gade, Rikke and Moeslund, Thomas B. and Madsen, Niels},\n"  # noqa: E501
+            "  booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},\n"  # noqa: E501
+            "  month = {June},\n"
+            "  year = {2019}\n"
+            "}"
         ),
         license="CC BY 4.0 -- see homepage before redistributing.",
     )

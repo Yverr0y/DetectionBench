@@ -5,6 +5,9 @@ DocLayNet ships as flat page images (``PNG/*.png``) plus per-split COCO
 detection JSONs (``COCO/{train,val,test}.json``). This adapter reshuffles
 that into the canonical ``{train,valid,test}/_annotations.coco.json`` layout,
 remapping category ids to a contiguous 0-indexed range along the way.
+
+Stats: see docs/datasets/doclaynet/README.md (class distribution, split
+summary, box geometry -- generated via detectionbench-dataset-stats).
 """
 
 from __future__ import annotations
@@ -63,10 +66,23 @@ class DocLayNetAdapter(DatasetAdapter):
         display_name="DocLayNet",
         classes=_CLASSES,
         class_colors=_CLASS_COLORS,
+        description=(
+            "DocLayNet is a large, human-annotated dataset for document-layout "
+            "analysis: 80,863 pages sampled from a diverse mix of financial reports, "
+            "scientific articles, laws/regulations, patents, and government tenders, "
+            "manually labeled (unlike the automatically-annotated PubLayNet) across 11 "
+            "layout classes. It's used to benchmark layout detection models that "
+            "generalize across document types rather than overfitting to one domain."
+        ),
         homepage="https://github.com/DS4SD/DocLayNet",
         citation=(
-            "Pfitzmann et al., 'DocLayNet: A Large Human-Annotated Dataset for "
-            "Document-Layout Analysis', KDD 2022."
+            "@inproceedings{pfitzmann2022doclaynet,\n"
+            "  author={Pfitzmann, Birgit and Auer, Christoph and Dolfi, Michele and Nassar, Ahmed S. and Staar, Peter W. J.},\n"  # noqa: E501
+            "  title={DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis},\n"  # noqa: E501
+            "  booktitle={Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD)},\n"  # noqa: E501
+            "  year={2022},\n"
+            "  doi={10.1145/3534678.3539043}\n"
+            "}"
         ),
         license="CDLA-Permissive-1.0 (dataset); Apache-2.0 (this code)",
     )
