@@ -101,8 +101,13 @@ download = [
     # (e.g. UAVDT, DUO -- see src/detectionbench/scripts/download_dataset.py).
     "gdown>=5.2.0",
 ]
+remote-sensing = [
+    # Reads multi-band GeoTIFFs (e.g. MARIDA's 11-band Sentinel-2 patches);
+    # PIL/cv2 can't decode >4-channel TIFFs.
+    "tifffile>=2024.1.0",
+]
 all = [
-    "detectionbench[dev,coco,rfdetr,benchmark,onnx,download]",
+    "detectionbench[dev,coco,rfdetr,benchmark,onnx,download,remote-sensing]",
 ]
 
 [project.scripts]

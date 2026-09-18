@@ -182,6 +182,40 @@ _SOURCES: dict[str, DatasetSource] = {
             ),
         ),
     ),
+    "neudet": DatasetSource(
+        key="neudet",
+        display_name="NEU-DET",
+        homepage="http://faculty.neu.edu.cn/songkc/en/zdylm/263265/list/index.htm",
+        license_note=(
+            "No license stated anywhere -- citation-requested only, no "
+            "redistribution grant. The original `yunhyan` faculty URL is "
+            "dead; this is the maintainer's (Kechen Song) current homepage. "
+            "Use locally for research; do not re-host."
+        ),
+        citation=(
+            "Song, K. and Yan, Y., 'A noise robust method based on completed "
+            "local binary patterns for hot-rolled steel strip surface "
+            "defects', Applied Surface Science, 2013; He et al., 'An "
+            "End-to-end Steel Surface Defect Detection Approach via Fusing "
+            "Multiple Hierarchical Features', IEEE Trans. Instrumentation "
+            "and Measurement, 2020."
+        ),
+        options=(
+            DownloadOption(
+                label="NEU-DET dataset (images + annotations)",
+                method="gdrive",
+                url="https://drive.google.com/open?id=1qrdZlaDi272eA79b0uCwwqPrm2Q_WI3k",
+                gdrive_id="1qrdZlaDi272eA79b0uCwwqPrm2Q_WI3k",
+            ),
+            DownloadOption(
+                label="NEU-DET dataset (Baidu Netdisk mirror)",
+                method="baidu",
+                url="https://pan.baidu.com/s/1nBbO-jWDm1_NHDQsc1dRkg",
+                access_code="pmqx",
+                note="Requires a Baidu account; not automatable from this script.",
+            ),
+        ),
+    ),
 }
 
 

@@ -98,7 +98,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
     )
-    parser.add_argument("--output-dir", default="eval_outputs", help="Output directory")
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory (default: experiments/<dataset>/<model>/evaluation, "
+        "matching the Hydra configs)",
+    )
     parser.add_argument(
         "--score-threshold",
         type=float,
@@ -194,6 +199,10 @@ def _run_rfdetr(args: argparse.Namespace) -> None:
 def main() -> None:
     """Dispatch `detectionbench-evaluate` to the Ultralytics or RF-DETR evaluator."""
     args = parse_args()
+    if args.output_dir is None:
+        args.output_dir = str(
+            Path("experiments") / args.dataset / args.model / "evaluation"
+        )
     if args.model.lower().startswith(("yolo", "rtdetr")):
         _run_yolo(args)
     else:

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import gc
 import json
+import time
 import weakref
 from pathlib import Path
 from typing import Any
@@ -225,6 +226,7 @@ def pick_best_f1_operating_point(
     all_predictions: list[Any],
     all_targets: list[Any],
     thresholds: tuple[float, ...] = PR_CONFIDENCE_THRESHOLDS,
+    console: Any = None,
 ) -> tuple[float, Any, Any]:
     """
     Sweep confidence thresholds and return the one maximizing weighted F1 @ IoU=0.5.
@@ -249,7 +251,8 @@ def pick_best_f1_operating_point(
 
     best_f1 = -1.0
     best: tuple[float, Any, Any] = (thresholds[0], None, None)
-    for threshold in thresholds:
+    for index, threshold in enumerate(thresholds, start=1):
+        sweep_start = time.perf_counter()
         precision_metric = Precision()
         recall_metric = Recall()
         for predictions, targets in zip(all_predictions, all_targets, strict=True):
@@ -265,6 +268,12 @@ def pick_best_f1_operating_point(
             if (precision_at_50 + recall_at_50) > 0
             else 0.0
         )
+        if console is not None:
+            console.print(
+                f"  [dim]PR sweep {index}/{len(thresholds)} threshold={threshold:.2f} "
+                f"P={precision_at_50:.3f} R={recall_at_50:.3f} F1={f1:.3f} "
+                f"({time.perf_counter() - sweep_start:.1f}s)[/dim]"
+            )
         if f1 > best_f1:
             best_f1 = f1
             best = (threshold, precision_result, recall_result)
@@ -301,6 +310,8 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:  # noqa: PLR0915
     if cfg.evaluation.cleanup_gpu_before_load:
         cleanup_gpu_memory(verbose=bool(cfg.evaluation.verbose_cleanup))
 
+    console.print("[cyan]Loading model...[/cyan]")
+    stage_start = time.perf_counter()
     model_class = load_rfdetr_model_class(str(cfg.model.name))
     model_kwargs = build_model_kwargs(cfg, device_key="evaluation")
     checkpoint_path = resolve_path(cfg.evaluation.checkpoint)
@@ -308,15 +319,28 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:  # noqa: PLR0915
         model_kwargs["pretrain_weights"] = checkpoint_path
     model = model_class(**model_kwargs)
 
+    console.print(f"  model loaded in {time.perf_counter() - stage_start:.1f}s")
+
     if cfg.evaluation.optimize_for_inference:
+        console.print(
+            "[cyan]Optimizing for inference (torch.compile can take minutes)...[/cyan]"
+        )
+        stage_start = time.perf_counter()
         model.optimize_for_inference(
             compile=bool(cfg.evaluation.compile_inference),
             batch_size=int(cfg.evaluation.inference_batch_size),
             dtype=resolve_inference_dtype(str(cfg.evaluation.inference_dtype)),
         )
 
+        console.print(f"  optimized in {time.perf_counter() - stage_start:.1f}s")
+
+    console.print("[cyan]Loading dataset annotations...[/cyan]")
+    stage_start = time.perf_counter()
     dataset, class_names = load_detection_dataset(
         dataset_dir, str(cfg.evaluation.split)
+    )
+    console.print(
+        f"  {len(dataset)} images loaded in {time.perf_counter() - stage_start:.1f}s"
     )
     map_metric = MeanAveragePrecision()
     all_predictions: list[Any] = []
@@ -351,7 +375,14 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:  # noqa: PLR0915
             all_targets.append(annotations)
             progress.advance(task_id)
 
+    total_detections = sum(len(d) for d in all_predictions)
+    console.print(
+        f"[cyan]Inference done. Computing mAP over {total_detections:,} detections "
+        f"({len(all_predictions)} images) -- this can take several minutes...[/cyan]"
+    )
+    stage_start = time.perf_counter()
     result = map_metric.compute()
+    console.print(f"  mAP computed in {time.perf_counter() - stage_start:.1f}s")
     # Precision/recall need a real confidence cutoff, unlike mAP -- see
     # pick_best_f1_operating_point's docstring for why the threshold=0.0
     # detection set above can't be reused directly (RF-DETR's fixed
@@ -359,8 +390,17 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:  # noqa: PLR0915
     # "detections"). This is the counterpart to Ultralytics'
     # `metrics/precision(B)`/`recall(B)`, so RF-DETR model cards stop
     # reporting these as "N/A" (see ROADMAP.md Phase 1).
+    console.print(
+        f"[cyan]Sweeping {len(PR_CONFIDENCE_THRESHOLDS)} confidence thresholds "
+        "for precision/recall...[/cyan]"
+    )
+    stage_start = time.perf_counter()
     pr_threshold, precision_result, recall_result = pick_best_f1_operating_point(
-        all_predictions, all_targets
+        all_predictions, all_targets, console=console
+    )
+    console.print(
+        f"  best threshold {pr_threshold:.2f}; sweep took "
+        f"{time.perf_counter() - stage_start:.1f}s"
     )
     metrics = serialize_metric_result(result)
     metrics["precision"] = float(precision_result.precision_at_50)

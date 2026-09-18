@@ -1,12 +1,13 @@
 """Shared console and logging utilities for DetectionBench CLIs."""
 
+import atexit
 from functools import lru_cache
 import logging
 import os
 from pathlib import Path
 import sys
 import time
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, TextIO, Union
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -56,7 +57,11 @@ def setup_logger(logpth: str | Path) -> None:
     if dist.is_initialized() and not dist.get_rank() == 0:
         log_level = logging.ERROR
     logging.basicConfig(level=log_level, format=FORMAT, filename=str(logfile))
-    logging.root.addHandler(logging.StreamHandler())
+    # Repeated calls must not stack duplicate console handlers.
+    if not any(getattr(h, "_detectionbench", False) for h in logging.root.handlers):
+        stream_handler = logging.StreamHandler()
+        stream_handler._detectionbench = True  # type: ignore[attr-defined]
+        logging.root.addHandler(stream_handler)
 
 
 class RichConsoleManager:
@@ -143,7 +148,12 @@ class RichConsoleManager:
         log_path: Optional[str],
     ) -> Console:
         theme = Theme(dict(theme_dict_frozen))
-        file = open(log_path, "a") if log_path else sys.stdout
+        file: TextIO
+        if log_path:
+            file = open(log_path, "a")  # noqa: SIM115  # cached for process lifetime
+            atexit.register(file.close)
+        else:
+            file = sys.stdout
         return Console(theme=theme, record=record, file=file)
 
     @classmethod

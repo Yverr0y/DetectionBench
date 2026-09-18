@@ -26,6 +26,8 @@ from __future__ import annotations
 import re
 import sys
 
+from detectionbench.utils.rfdetr import RFDETR_MODEL_ALIASES
+
 _MODEL_OVERRIDE_PATTERN = re.compile(r"^model(?:\.name)?=(.+)$")
 
 
@@ -40,16 +42,21 @@ def _peek_model_name(argv: list[str]) -> str:
 
 def main() -> None:
     """Dispatch `detectionbench-train` to the Ultralytics or RF-DETR trainer."""
-    model_name = _peek_model_name(sys.argv[1:]).lower()
+    model_name = _peek_model_name(sys.argv[1:]).strip().lower()
 
     if model_name.startswith(("yolo", "rtdetr")) or not model_name:
         from detectionbench.scripts.train_yolo import main as yolo_main
 
         yolo_main()
-    else:
+    elif model_name.startswith("rfdetr") or model_name in RFDETR_MODEL_ALIASES:
         from detectionbench.scripts.train_rfdetr import main as rfdetr_main
 
         rfdetr_main()
+    else:
+        raise SystemExit(
+            f"Unknown model '{model_name}'. Expected an Ultralytics name "
+            "(yolo*, rtdetr*) or an RF-DETR name (rfdetr-nano/small/medium/large)."
+        )
 
 
 if __name__ == "__main__":
