@@ -7,6 +7,7 @@ from detectionbench.datasets import (  # noqa: F401
     exdark,
     gc10det,
     gwhd,
+    hrp4k,
     hrsid,
     lisa,
     llvip,

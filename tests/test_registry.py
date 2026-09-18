@@ -13,6 +13,7 @@ _KNOWN_KEYS = {
     "exdark",
     "gc10det",
     "gwhd",
+    "hrp4k",
     "hrsid",
     "lisa",
     "llvip",
