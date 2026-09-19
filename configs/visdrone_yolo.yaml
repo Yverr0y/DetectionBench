@@ -1,0 +1,70 @@
+# visdrone_yolo.yaml
+# VisDrone-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead of config.yaml:
+#   detectionbench-train --config-name visdrone_yolo model.name=yolov8m
+#
+# Why VisDrone needs its own settings (from docs/datasets/visdrone/README.md + the COCO annotations):
+#   * ~53 boxes/image (median 42, p95 132, max 902) and tiny objects: median box is 0.05% of the image
+#     area, i.e. ~26 px on a native ~1400 px-wide frame.
+#   * At imgsz=640 that median object shrinks to ~12 px (65% of boxes < 16 px, 30% < 8 px); at 1280 it is
+#     ~24 px (30% < 16 px, 7% < 8 px). Input resolution is the main lever for this dataset.
+#   * 6,471 train / 548 val / 1,610 test images, so an epoch is cheap (~100 optimizer steps at nbs=64).
+#
+# Everything here is a reasoned starting point, not a tuned result -- compare against the existing zoo.
+
+defaults:
+  - dataset: visdrone
+  - _self_
+
+model:
+  name: "yolov8m" # override per run, e.g. model.name=yolo11x
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 100 # RF-DETR val mAP on VisDrone peaked at epochs 41-123 with a flat LR; cosine decay over ~100 fits that
+  # Ultralytics AutoBatch (~60% of GPU memory) -- 1280 px batches are large; nbs=64 gradient
+  # accumulation keeps the effective batch at 64.
+  batch_size: -1
+  learning_rate: 0.01 # SGD lr0; only used because optimizer is explicit (with "auto" Ultralytics ignores lr0)
+  imgsz: 1280 # native frames are ~1400 px wide; 640 would shrink the median object to ~12 px
+  # Ultralytics' own choice for runs over ~10k iterations; 100 epochs x ~102 steps is right at that
+  # threshold, so it is pinned explicitly.
+  optimizer: "SGD"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 25 # 548 val images make mAP noisy, so don't stop on a short plateau; cosine's tail often gains late
+  # Separate from experiments/visdrone/ (existing zoo runs) so nothing is overwritten.
+  output_dir: "experiments/visdrone_v2/${model.name}"
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 3.0 # default; keeps early steps stable with the higher-resolution, denser batches
+    close_mosaic: 10 # default; last 10 epochs train without mosaic so the model sees natural scenes
+    mosaic: 1.0 # default; mosaic helps dense small-object detection
+    scale: 0.3 # default 0.5; a lower random-scale range avoids shrinking already-tiny objects further
+    # default 300; VisDrone images reach ~900 boxes (p99 ~211), so lift the per-image cap during validation
+    max_det: 500
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 1280 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

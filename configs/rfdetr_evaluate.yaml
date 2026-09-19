@@ -9,6 +9,7 @@ model:
   name: "rfdetr-nano"
   num_classes: ${dataset.num_classes}
   pretrain_weights: null
+  # Must match the training resolution; null = family default (nano 384, small 512, medium 576, large 704).
   resolution: null
 
 evaluation:

@@ -9,18 +9,25 @@ model:
   name: "rfdetr-nano" # Supported: rfdetr-nano, rfdetr-small, rfdetr-medium, rfdetr-large
   num_classes: ${dataset.num_classes} # Set to null to let RF-DETR infer the class count from the dataset
   pretrain_weights: null # Optional checkpoint path to continue from or override default pretrained weights
-  resolution: null # Optional input resolution override; null keeps the model family's default resolution
+  # Square input size (images are resized whole to resolution x resolution -- RF-DETR does
+  # not crop). null keeps the model family's default: nano 384, small 512, medium 576,
+  # large 704. Must be divisible by 32 (patch_size 16 x num_windows 2). Use the same value
+  # in rfdetr_evaluate.yaml / export_onnx.yaml, or evaluation runs at the family default.
+  resolution: null
 
 training:
   dataset_dir: ${dataset.dataset_dir} # Root dir with train/valid/test and _annotations.coco.json files
   dataset_file: "roboflow" # Supports the requested train/valid/test COCO-style layout
   output_dir: "experiments/${dataset.name}/${model.name}" # Base directory for RF-DETR artifacts
-  epochs: 500
+  epochs: 50
   batch_size: auto # Integer or "auto"
   grad_accum_steps: 4
   learning_rate: 0.0001
   learning_rate_encoder: 0.00015
-  scheduler_type: "step" # Supported by RF-DETR train config: step, cosine
+  # "cosine" decays smoothly over the whole run. "step" only drops the LR 10x after RF-DETR's
+  # lr_drop (default 100 epochs, not exposed here), so it never fires in runs shorter than that.
+  scheduler_type: "cosine" # Supported by RF-DETR train config: step, cosine
+  warmup_epochs: 0.0 # Linear LR warmup, in epochs (fractions allowed); 0.0 disables it
   checkpoint_interval: 100
   eval_interval: 1
   workers: 4
@@ -30,7 +37,7 @@ training:
   tensorboard: true
   wandb: false
   early_stopping: true
-  early_stopping_patience: 100
+  early_stopping_patience: 10
   early_stopping_min_delta: 0.001
   progress_bar: "rich" # rich, tqdm, or null
   augmentation_backend: "gpu" # cpu, auto, gpu

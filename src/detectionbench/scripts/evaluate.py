@@ -94,6 +94,13 @@ def parse_args() -> argparse.Namespace:
         help="Canonical COCO root (RF-DETR only; default: from "
         "configs/dataset/<key>.yaml)",
     )
+    parser.add_argument(
+        "--resolution",
+        type=int,
+        default=None,
+        help="RF-DETR input resolution (default: the one recorded in the "
+        "checkpoint's training_config.json, else the model family default)",
+    )
     parser.add_argument("--split", default="test", help="Dataset split to evaluate")
     parser.add_argument(
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
@@ -173,7 +180,7 @@ def _run_rfdetr(args: argparse.Namespace) -> None:
                 "name": args.model,
                 "num_classes": num_classes,
                 "pretrain_weights": None,
-                "resolution": None,
+                "resolution": args.resolution,
             },
             "evaluation": {
                 "dataset_dir": dataset_dir,

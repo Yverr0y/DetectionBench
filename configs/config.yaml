@@ -14,15 +14,15 @@ model:
 training:
   # Training parameters
   dataset_yaml: ${dataset.dataset_yaml} # Path to the Ultralytics dataset configuration file
-  epochs: 500 # Number of training epochs
-  batch_size: 32 # Batch size for training
+  epochs: 50 # Number of training epochs
+  batch_size: 16 # Batch size for training
   learning_rate: 0.001 # Initial learning rate
   imgsz: 640 # Input image size (height and width)
   optimizer: "adam" # Ultralytics optimizer: auto, SGD, Adam, AdamW, NAdam, RAdam, RMSProp (case-insensitive)
   use_scheduler: true # Enable an explicit LR schedule (else Ultralytics' default linear decay)
   scheduler_type: "cosine" # Only "linear" or "cosine" map to the Ultralytics engine (cos_lr); others warn + fall back to linear
   use_amp: true # Use Automatic Mixed Precision (AMP) for faster training and lower memory usage
-  patience: 100 # Early stopping: epochs with no mAP improvement before stopping (Ultralytics native mechanism)
+  patience: 10 # Early stopping: epochs with no mAP improvement before stopping (Ultralytics native mechanism)
   output_dir: "experiments/${dataset.name}/${model.name}" # Directory to save model checkpoints and logs
   workers: 4 # Number of workers for data loading
   use_augmentation: true # Uses default augmentation pipeline from YOLOv5 repo, can be modified in the future if needed

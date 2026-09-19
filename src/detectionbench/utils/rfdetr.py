@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 from hydra.utils import to_absolute_path
@@ -64,6 +66,27 @@ def load_rfdetr_model_class(model_name: str) -> type[Any]:
     return getattr(rfdetr, class_name)
 
 
+def read_training_resolution(checkpoint_path: str | None) -> int | None:
+    """
+    Return the input resolution a checkpoint was trained at, if recorded.
+
+    RF-DETR checkpoints don't store the resolution, but training writes
+    ``training_config.json`` (with ``model_config.resolution``) next to them.
+    Returns None when the checkpoint has no such sibling file (e.g. an
+    interrupted run) -- callers then fall back to the model family default.
+    """
+    if not checkpoint_path:
+        return None
+    config_path = Path(checkpoint_path).parent / "training_config.json"
+    if not config_path.is_file():
+        return None
+    try:
+        resolution = json.loads(config_path.read_text())["model_config"]["resolution"]
+    except (OSError, KeyError, TypeError, ValueError):
+        return None
+    return int(resolution) if resolution is not None else None
+
+
 def build_model_kwargs(cfg: DictConfig, *, device_key: str) -> dict[str, Any]:
     """Build RF-DETR model constructor kwargs from Hydra config."""
     model_kwargs: dict[str, Any] = {
@@ -96,6 +119,7 @@ def build_training_kwargs(cfg: DictConfig) -> dict[str, Any]:
         "lr": float(cfg.training.learning_rate),
         "lr_encoder": float(cfg.training.learning_rate_encoder),
         "lr_scheduler": str(cfg.training.scheduler_type),
+        "warmup_epochs": float(cfg.training.get("warmup_epochs", 0.0)),
         "checkpoint_interval": int(cfg.training.checkpoint_interval),
         "eval_interval": int(cfg.training.eval_interval),
         "num_workers": int(cfg.training.workers),

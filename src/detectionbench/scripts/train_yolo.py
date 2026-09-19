@@ -51,6 +51,13 @@ def train_and_evaluate(cfg: DictConfig) -> None:
             "are supported); falling back to linear decay.[/bold yellow]"
         )
 
+    # Optional pass-through of extra Ultralytics train() arguments (warmup_epochs,
+    # close_mosaic, scale, max_det, ...) -- empty unless the config sets them.
+    extra_cfg = cfg.training.get("extra_args")
+    extra_args: dict[str, Any] = (
+        {str(key): value for key, value in extra_cfg.items()} if extra_cfg else {}
+    )
+
     results = trainer.train(
         dataset_yaml=cfg.training.dataset_yaml,
         epochs=cfg.training.epochs,
@@ -64,6 +71,7 @@ def train_and_evaluate(cfg: DictConfig) -> None:
         optimizer=cfg.training.optimizer,
         cos_lr=cos_lr,
         augment=cfg.training.use_augmentation,
+        **extra_args,
     )
     if not results["model_path"]:
         raise RuntimeError("Training completed without producing a model checkpoint.")

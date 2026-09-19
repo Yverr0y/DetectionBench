@@ -4,7 +4,7 @@
 # Already benchmarked end-to-end across the full YOLO model spectrum via a
 # separate codebase (https://github.com/dronefreak/VisDrone-dataset-python-toolkit);
 # published model zoo:
-#   https://huggingface.co/collections/dronefreak/visdrone-detection-model-zoo
+#   https://huggingface.co/collections/dronefreak/visdrone-object-detection-model-zoo
 # That YOLO zoo is not reproduced here. This entry wires VisDrone-DET into
 # DetectionBench itself for further use (e.g. training the RF-DETR variant
 # that zoo doesn't have yet, or running it through DetectionBench's own

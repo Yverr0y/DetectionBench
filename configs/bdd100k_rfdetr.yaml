@@ -1,0 +1,68 @@
+# bdd100k_rfdetr.yaml
+# BDD100K-specific Hydra config for RF-DETR. Use instead of rfdetr.yaml, one resolution per model size:
+#   detectionbench-train --config-name bdd100k_rfdetr model.name=rfdetr-nano   model.resolution=576
+#   detectionbench-train --config-name bdd100k_rfdetr model.name=rfdetr-small  model.resolution=640
+#   detectionbench-train --config-name bdd100k_rfdetr model.name=rfdetr-medium model.resolution=704
+# Evaluation reads the resolution back from training_config.json (detectionbench-evaluate does this
+# automatically), so it will match training.
+#
+# Why BDD100K needs its own settings (from docs/datasets/bdd100k/README.md + the converted COCO annotations):
+#   * Big and uniform: 59,384 train / 10,479 valid / 10,000 test images, all 1280x720, ~18 boxes/image (p99 47, max 91).
+#     At an effective batch of ~16 an epoch is ~3,700 steps, so ~30 epochs is already >100k steps.
+#   * RF-DETR squares the frame (1280x720 -> R x R), so the median ~29 px box becomes ~29 * R / 960 px:
+#     at the family defaults (384 / 512 / 576) that is ~11 / ~15 / ~17 px, and traffic lights (~16 px native) fall to
+#     ~6.5 / ~8.7 / ~9.8 px. Resolutions 576 / 640 / 704 give ~17 / ~19 / ~21 px medians -- a modest bump, because
+#     this dataset is ~9x larger than VisDrone and cost per epoch (roughly with resolution squared) dominates.
+#     Sizes must be multiples of 64 (patch 16 x 2 windows, square_resize_div_64).
+#   * Validation is 10k images drawn from the same distribution as test, so it is a trustworthy early-stopping signal
+#     (unlike UAVDT, where val and test differ sharply).
+#
+# Everything here is a reasoned starting point, not a tuned result.
+# Local-only dataset: the BDD100K licence does not permit redistribution, so no HF mirror
+# (see configs/dataset/bdd100k.yaml).
+
+defaults:
+  - dataset: bdd100k
+  - _self_
+
+model:
+  name: "rfdetr-small"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: 640 # override per model size (see header); must be divisible by 64
+
+training:
+  dataset_dir: ${dataset.dataset_dir}
+  dataset_file: "roboflow"
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  epochs: 30 # ~3,700 steps/epoch at effective batch 16; cosine decays over the whole run
+  batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
+  grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
+  learning_rate: 0.0001 # RF-DETR's fine-tuning default; unchanged at effective batch ~16
+  learning_rate_encoder: 0.00015
+  scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a 30-epoch run never reaches
+  warmup_epochs: 0.25 # ~900 steps
+  checkpoint_interval: 10
+  eval_interval: 1
+  workers: 8
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto"
+  tensorboard: true
+  wandb: false
+  early_stopping: true
+  early_stopping_patience: 8 # stable 10k-image validation; cosine's low-LR tail may still gain late, so not too short
+  early_stopping_min_delta: 0.001
+  progress_bar: "rich"
+  augmentation_backend: "gpu"
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

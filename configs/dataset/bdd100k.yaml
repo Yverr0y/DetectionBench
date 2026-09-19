@@ -1,0 +1,40 @@
+# dataset/bdd100k.yaml
+# Hydra `dataset` config group entry for BDD100K (multi-class driving-scene
+# detection).
+#
+# Converted from the Berkeley DeepDrive "100k Images" + "Labels" release, as
+# downloaded via the third-party Kaggle mirror
+# https://www.kaggle.com/datasets/solesensei/solesensei_bdd100k (uploaded by
+# Kaggle user SoleSensei, not by Berkeley DeepDrive; Kaggle lists it with no
+# license of its own -- "Other (specified in description)" -- so the
+# original BDD100K DUA still governs regardless of download channel).
+# Raw layout: `images/100k/{train,val}/` + native-format
+# `labels/bdd100k_labels_images_{train,val}.json`, via:
+#   detectionbench-prepare-coco --dataset bdd100k --raw-dir <BDD100K_raw_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter keeps the official val split as `test` and carves a seeded 15%
+# validation slice out of train (see src/detectionbench/datasets/bdd100k.py).
+# The official test split (20,000 images) has no released labels and is not
+# used. Only `box2d` detection labels are converted; lane/drivable-area
+# `poly2d` annotations in the same release are dropped (different task).
+#
+# License: BDD100K License (Berkeley DeepDrive) -- free for non-commercial
+# research/education; registration-gated (manual DUA click-through) and does
+# NOT permit redistribution. Local benchmarking only -- **no Hugging Face
+# mirror**.
+#
+# Stats: see ../../docs/datasets/bdd100k/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: bdd100k
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/BDD100K/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/BDD100K/coco_dataset
+num_classes: 10
+
+eval_split: test

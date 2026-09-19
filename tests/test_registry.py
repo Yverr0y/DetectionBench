@@ -7,6 +7,7 @@ from detectionbench.datasets.base import DatasetAdapter, DatasetSpec
 from detectionbench.datasets.registry import register
 
 _KNOWN_KEYS = {
+    "bdd100k",
     "brackish",
     "doclaynet",
     "duo",

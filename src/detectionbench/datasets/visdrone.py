@@ -19,7 +19,7 @@ This dataset has already been benchmarked end-to-end across the full YOLO
 model spectrum (YOLOv8/9/10/11/26 + RT-DETR) via a separate codebase
 (https://github.com/dronefreak/VisDrone-dataset-python-toolkit), with results
 published at
-https://huggingface.co/collections/dronefreak/visdrone-detection-model-zoo.
+https://huggingface.co/collections/dronefreak/visdrone-object-detection-model-zoo.
 This adapter exists so DetectionBench itself can also train/evaluate against
 VisDrone-DET (e.g. to add the RF-DETR variant that zoo doesn't have yet) --
 not to reproduce or replace that existing YOLO benchmark.

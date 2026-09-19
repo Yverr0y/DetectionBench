@@ -1,0 +1,67 @@
+# visdrone_rfdetr.yaml
+# VisDrone-specific Hydra config for RF-DETR. Use instead of rfdetr.yaml, one resolution per model size:
+#   detectionbench-train --config-name visdrone_rfdetr model.name=rfdetr-nano   model.resolution=640
+#   detectionbench-train --config-name visdrone_rfdetr model.name=rfdetr-small  model.resolution=768
+#   detectionbench-train --config-name visdrone_rfdetr model.name=rfdetr-medium model.resolution=896
+# Evaluation reads the resolution back from training_config.json (detectionbench-evaluate does this
+# automatically), so it will match training.
+#
+# Why VisDrone needs its own settings (from docs/datasets/visdrone/README.md + the existing zoo's
+# training_config.json files):
+#   * Median box is ~26 px on a ~1400 px-wide native frame. The existing zoo trained RF-DETR at 384 / 512 / 576,
+#     which shrinks that median to ~7 / ~9.5 / ~10.7 px -- below RF-DETR's 16 px patch stride. Resolution is the
+#     biggest lever here; 640 / 768 / 896 give ~12 / ~14 / ~17 px.
+#     Sizes must be multiples of 64 (patch 16 x 2 windows, square_resize_div_64), and cost grows roughly with the
+#     square of the resolution (expect a few times slower per epoch than the old runs -- an estimate, not measured).
+#   * The existing runs used lr_scheduler "step" with lr_drop=100, no warmup, epochs 300/500, patience 50/100 and
+#     peaked at epoch 123 (nano), 57 (small), 41 (medium), with val mAP within ~1 point of the best by epoch 25.
+#   * ~53 boxes/image (p99 211, 12 of 6,471 train images above 300). RF-DETR's 300 queries are enough for almost
+#     every image; eval already allows up to 500 detections.
+#
+# Everything here is a reasoned starting point, not a tuned result -- compare against the existing zoo.
+
+defaults:
+  - dataset: visdrone
+  - _self_
+
+model:
+  name: "rfdetr-small"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: 768 # override per model size (see header); must be divisible by 64
+
+training:
+  dataset_dir: ${dataset.dataset_dir}
+  dataset_file: "roboflow"
+  output_dir: "experiments/visdrone_v2/${model.name}" # separate from experiments/visdrone/ (existing zoo runs)
+  epochs: 100 # cosine decays over the whole run; the old runs' best epochs were 41-123 with a flat LR
+  batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
+  grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
+  learning_rate: 0.0001 # RF-DETR's fine-tuning default; unchanged at effective batch ~16
+  learning_rate_encoder: 0.00015
+  scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a ~100-epoch run barely reaches
+  warmup_epochs: 1.0 # ~400 steps at effective batch 16; the old runs had none
+  checkpoint_interval: 20
+  eval_interval: 1
+  workers: 8
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto"
+  tensorboard: true
+  wandb: false
+  early_stopping: true
+  early_stopping_patience: 20 # 548 val images make mAP noisy; cosine's low-LR tail often gains late
+  early_stopping_min_delta: 0.001
+  progress_bar: "rich"
+  augmentation_backend: "gpu"
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

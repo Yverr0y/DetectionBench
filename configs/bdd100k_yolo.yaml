@@ -1,0 +1,71 @@
+# bdd100k_yolo.yaml
+# BDD100K-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead of config.yaml:
+#   detectionbench-train --config-name bdd100k_yolo model.name=yolov8m
+#
+# Why BDD100K needs its own settings (from docs/datasets/bdd100k/README.md + the converted COCO annotations):
+#   * Big and uniform: 59,384 train / 10,479 valid / 10,000 test images, all 1280x720 dashcam frames, ~18 boxes per
+#     image (p99 47, max 91). An epoch is ~930 optimizer steps at nbs=64, so far fewer epochs are needed than on a
+#     small dataset, and validation (10k images) is large enough for mAP to be a stable signal.
+#   * Mixed object sizes: median box ~29 px on the native frame, but traffic lights are ~16 px and traffic signs ~21 px
+#     (75-88% of them are under 16 px at imgsz=640). Resolution matters mostly for those two classes (28% of boxes).
+#     Fraction of all boxes under 16 px: 55% at imgsz 640, 35% at 960, 21% at 1280.
+#   * Strong imbalance: car 55%, traffic sign 19%, traffic light 15%; `train` has only ~150 boxes in total, so its
+#     per-class AP will be near-noise no matter the recipe.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+# Local-only dataset: the BDD100K licence does not permit redistribution, so no HF mirror
+# (see configs/dataset/bdd100k.yaml).
+
+defaults:
+  - dataset: bdd100k
+  - _self_
+
+model:
+  name: "yolov8m" # override per run, e.g. model.name=yolo11x
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 50 # COCO-pretrained weights converge quickly on ~60k images; cosine decay over 50 epochs
+  # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
+  batch_size: -1
+  learning_rate: 0.01 # SGD lr0; only used because optimizer is explicit (with "auto" Ultralytics ignores lr0)
+  # Compromise: 640 loses most traffic lights/signs; 1280 (native width) costs ~1.8x more per epoch than 960.
+  imgsz: 960
+  # What Ultralytics' "auto" would pick here anyway (50 epochs x ~930 steps is far past its
+  # 10k-iteration threshold); pinned for reproducibility.
+  optimizer: "SGD"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 10 # 10k validation images -> stable mAP, so a shorter patience than on small-val datasets is fine
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 1.0 # default 3.0; with ~930 steps per epoch, 1 epoch is already ~930 warmup steps
+    close_mosaic: 10 # default; last 10 epochs train without mosaic so the model sees natural dashcam scenes
+    mosaic: 1.0 # default
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 960 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

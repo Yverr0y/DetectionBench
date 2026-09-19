@@ -38,6 +38,7 @@ from detectionbench.utils.rfdetr import (
     build_model_kwargs,
     load_rfdetr_model_class,
     normalize_model_name,
+    read_training_resolution,
     resolve_path,
 )
 from detectionbench.utils.utils import RichConsoleManager
@@ -317,6 +318,26 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:  # noqa: PLR0915
     checkpoint_path = resolve_path(cfg.evaluation.checkpoint)
     if checkpoint_path:
         model_kwargs["pretrain_weights"] = checkpoint_path
+
+    # Evaluate at the resolution the checkpoint was trained at. An explicit
+    # model.resolution wins (with a warning if it disagrees); otherwise use the
+    # one recorded next to the checkpoint; otherwise the family default.
+    trained_resolution = read_training_resolution(checkpoint_path)
+    if "resolution" in model_kwargs:
+        if trained_resolution and model_kwargs["resolution"] != trained_resolution:
+            console.print(
+                f"[yellow]Warning: resolution {model_kwargs['resolution']} differs "
+                f"from the {trained_resolution} this checkpoint was trained at."
+                "[/yellow]"
+            )
+    elif trained_resolution:
+        model_kwargs["resolution"] = trained_resolution
+        console.print(f"  Resolution: {trained_resolution} (from training_config.json)")
+    else:
+        console.print(
+            "[yellow]Warning: no training_config.json next to the checkpoint; "
+            "evaluating at the model family's default resolution.[/yellow]"
+        )
     model = model_class(**model_kwargs)
 
     console.print(f"  model loaded in {time.perf_counter() - stage_start:.1f}s")
