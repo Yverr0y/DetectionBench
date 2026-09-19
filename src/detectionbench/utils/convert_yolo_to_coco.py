@@ -40,6 +40,13 @@ Usage:
       --input-dir /path/to/yolo_dataset \
       --output-dir /path/to/coco_dataset \
       --dataset-yaml /path/to/yolo_dataset/dataset.yaml
+
+  # Hardlink images instead of copying them (same filesystem): no extra disk.
+  # Falls back to a copy across filesystems.
+  python -m detectionbench.utils.convert_yolo_to_coco \
+      --input-dir /path/to/yolo_dataset \
+      --output-dir /path/to/coco_dataset \
+      --hardlink-images
 """
 
 from __future__ import annotations
@@ -110,6 +117,13 @@ def parse_args() -> argparse.Namespace:
         "--dataset-yaml",
         default=None,
         help="Path to the YOLO dataset YAML (default: auto-detect inside input_dir)",
+    )
+    parser.add_argument(
+        "--hardlink-images",
+        action="store_true",
+        default=False,
+        help="Hardlink images instead of copying them (no extra disk; falls back "
+        "to a copy across filesystems)",
     )
     parser.add_argument(
         "--save-report",
@@ -299,13 +313,14 @@ def build_categories(names: list[str]) -> list[dict[str, Any]]:
     ]
 
 
-def convert_split(
+def convert_split(  # noqa: PLR0913 -- keyword-only, one flag per option
     *,
     split_name: str,
     output_name: str,
     image_paths: list[Path],
     class_names: list[str],
     output_root: Path,
+    hardlink_images: bool = False,
 ) -> tuple[SplitConversionStats, dict[str, Any]]:
     """Convert one YOLO split into a COCO split directory and JSON file."""
     console = RichConsoleManager.get_console()
@@ -322,7 +337,14 @@ def convert_split(
     for image_id, image_path in enumerate(image_paths, start=1):
         output_file_name = normalize_output_name(image_path, seen_names)
         destination_path = split_output_dir / output_file_name
-        shutil.copy2(image_path, destination_path)
+        if hardlink_images:
+            # Imported lazily: detectionbench.datasets imports this module (the
+            # rdd2022 adapter reuses its helpers), so a top-level import is circular.
+            from detectionbench.datasets.base import link_image
+
+            link_image(image_path, destination_path)
+        else:
+            shutil.copy2(image_path, destination_path)
 
         image_width, image_height = load_image_size(image_path)
         images.append(
@@ -424,6 +446,7 @@ def convert(args: argparse.Namespace) -> None:
             image_paths=image_paths,
             class_names=dataset_config.names,
             output_root=output_dir,
+            hardlink_images=getattr(args, "hardlink_images", False),
         )
         processed_target_splits.add(target_split)
         report["splits"][target_split] = {

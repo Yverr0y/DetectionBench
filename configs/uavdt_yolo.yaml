@@ -1,0 +1,74 @@
+# uavdt_yolo.yaml
+# UAVDT-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead of config.yaml:
+#   detectionbench-train --config-name uavdt_yolo model.name=yolov8m
+#
+# What the data and the existing UAVDT zoo runs show:
+#   * Train is only 30 video sequences (20,591 near-duplicate frames, 1024x540); val is 6 more sequences carved from
+#     train (3,552 frames). The models overfit these sequences fast: the existing YOLO runs stopped at epochs 102-112
+#     with patience 100, i.e. their best epoch was ~2-12, and every RF-DETR run peaked at epoch 0.
+#   * Val is not a good proxy for test (28 vs 7 boxes/image; val mAP 27-37% vs test mAP 7-9%), so long training with
+#     patience tuned on val buys nothing -- short runs with a small patience are enough.
+#   * Objects are moderate: median box ~33 px on train frames (~22 px in the labelled test sequences), 3 classes with
+#     car 95% / truck 3% / bus 2%. At imgsz 640 the train median is ~21 px (29% under 16 px); at the native 1024 it is
+#     ~33 px (10% under 16 px).
+#   * Test split: the adapter now drops the 50 "S*" single-object-tracking sequences that have no detection labels
+#     (37,084 of 53,676 old test frames), leaving 16,592 labelled test frames. Regenerate the COCO/YOLO copies with
+#     detectionbench-prepare-coco before using this config -- copies made earlier still contain those unlabelled frames,
+#     which count every correct detection there as a false positive (re-evaluating two old models on only the
+#     labelled frames roughly doubled their mAP). Results are not comparable to the earlier experiments/uavdt runs.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+# Research-only dataset: UAVDT has no redistribution grant (see configs/dataset/uavdt.yaml).
+
+defaults:
+  - dataset: uavdt
+  - _self_
+
+model:
+  name: "yolov8m" # override per run, e.g. model.name=yolo26s
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 30 # existing runs peaked at epoch ~2-12; a short cosine run gives the LR tail without wasting time
+  # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
+  batch_size: -1
+  # AdamW lr0; half the 0.001 used before, since those runs peaked within a few epochs (untested hypothesis).
+  learning_rate: 0.0005
+  imgsz: 1024 # native frame width (1024x540); 640 would shrink the labelled-test median object to ~14 px
+  optimizer: "AdamW"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 8 # val peaks early and is a weak proxy for test, so don't wait long
+  output_dir: "experiments/uavdt_v2/${model.name}" # separate from experiments/uavdt/ (existing zoo runs)
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 3.0 # default
+    close_mosaic: 5 # default 10; with only 30 epochs, keep the final no-mosaic phase short
+    hsv_v: 0.5 # default 0.4; the test sequences include night and fog scenes
+    mixup: 0.1 # default 0.0; mild regularisation against overfitting 30 sequences (untested)
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 1024 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

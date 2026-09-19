@@ -46,3 +46,23 @@ def test_convert_yolo_to_coco_round_trip(tmp_path: Path) -> None:
     assert payload["categories"] == [
         {"id": 0, "name": "widget", "supercategory": "none"}
     ]
+
+
+def test_convert_yolo_to_coco_hardlinks_images(tmp_path: Path) -> None:
+    input_dir = tmp_path / "yolo"
+    _write_yolo_dataset(input_dir)
+    output_dir = tmp_path / "coco"
+
+    args = argparse.Namespace(
+        input_dir=str(input_dir),
+        output_dir=str(output_dir),
+        dataset_yaml=None,
+        save_report=None,
+        hardlink_images=True,
+    )
+    convert(args)
+
+    payload = json.loads((output_dir / "train" / "_annotations.coco.json").read_text())
+    out_image = output_dir / "train" / payload["images"][0]["file_name"]
+    source = next((input_dir / "images" / "train").iterdir())
+    assert out_image.samefile(source)  # same inode: hardlinked, not copied

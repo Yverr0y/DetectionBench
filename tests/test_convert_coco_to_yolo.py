@@ -56,3 +56,22 @@ def test_convert_writes_data_yaml_with_class_names(tmp_path: Path) -> None:
     assert "nc: 2" in data_yaml_text
     assert "cat" in data_yaml_text
     assert "dog" in data_yaml_text
+
+
+def test_convert_split_hardlinks_images(tmp_path: Path) -> None:
+    coco_split_dir = tmp_path / "coco" / "train"
+    _write_canonical_split(coco_split_dir)
+    output_dir = tmp_path / "yolo"
+
+    convert_split(
+        coco_split_dir,
+        output_dir,
+        "train",
+        copy_images=False,
+        hardlink_images=True,
+    )
+
+    src = coco_split_dir / "img1.jpg"
+    dst = output_dir / "images" / "train" / "img1.jpg"
+    assert not dst.is_symlink()  # a real directory entry, valid after a move
+    assert dst.samefile(src)  # same inode as the COCO copy: no extra disk

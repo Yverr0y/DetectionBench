@@ -8,6 +8,10 @@
 # The adapter keeps UAVDT's official test split and carves a sequence-aware
 # validation set from train (seeded, disjoint sequences -- see
 # src/detectionbench/datasets/uavdt.py).
+# Sequences with no detection labels at all (UAVDT's 50 tracking-only "S*"
+# test sequences, 37,084 frames) are dropped, leaving 16,592 labelled test
+# frames from 20 sequences -- COCO/YOLO copies generated before this change
+# must be regenerated (detectionbench-prepare-coco + convert-coco-to-yolo).
 #
 # License: distributed "for research purpose only" -- no redistribution
 # grant. Not mirrored on Hugging Face; get the raw data via

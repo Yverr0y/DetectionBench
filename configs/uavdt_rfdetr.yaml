@@ -1,0 +1,74 @@
+# uavdt_rfdetr.yaml
+# UAVDT-specific Hydra config for RF-DETR. Use instead of rfdetr.yaml, one resolution per model size:
+#   detectionbench-train --config-name uavdt_rfdetr model.name=rfdetr-nano   model.resolution=640
+#   detectionbench-train --config-name uavdt_rfdetr model.name=rfdetr-small  model.resolution=704
+#   detectionbench-train --config-name uavdt_rfdetr model.name=rfdetr-medium model.resolution=768
+# Evaluation reads the resolution back from training_config.json (detectionbench-evaluate does this
+# automatically), so it will match training.
+#
+# What the data and the existing UAVDT zoo runs show:
+#   * Train is only 30 video sequences (20,591 near-duplicate 1024x540 frames); val is 6 more sequences carved from
+#     train (3,552 frames). All three existing RF-DETR runs peaked at epoch 0 (val mAP@50-95 0.28 / 0.34 / 0.37) and
+#     then declined to 0.16 / 0.26 / 0.28, with a constant LR of 1e-4 and no warmup -- the models overfit the training
+#     sequences almost immediately.
+#   * Val is not a good proxy for test (28 vs 7 boxes/image; val mAP 27-37% vs test mAP 7-9%), so long runs with
+#     patience tuned on val buy nothing -- short runs and a small patience are enough.
+#   * RF-DETR squares the frame (1024x540 -> R x R), so a native box is scaled by ~R/744. The labelled test
+#     sequences have a median box of ~22 px, i.e. ~11.5 / 15 / 17 px at the family defaults (384 / 512 / 576).
+#     Resolutions 640 / 704 / 768 give ~19 / ~21 / ~23 px. Sizes must be multiples of 64 (patch 16 x 2 windows,
+#     square_resize_div_64).
+#   * Test split: the adapter now drops the 50 "S*" single-object-tracking sequences that have no detection labels
+#     (37,084 of 53,676 old test frames), leaving 16,592 labelled test frames. Regenerate the COCO/YOLO copies with
+#     detectionbench-prepare-coco before using this config -- copies made earlier still contain those unlabelled frames,
+#     which count every correct detection there as a false positive (re-evaluating two old models on only the
+#     labelled frames roughly doubled their mAP). Results are not comparable to the earlier experiments/uavdt runs.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+# Research-only dataset: UAVDT has no redistribution grant (see configs/dataset/uavdt.yaml).
+
+defaults:
+  - dataset: uavdt
+  - _self_
+
+model:
+  name: "rfdetr-small"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: 704 # override per model size (see header); must be divisible by 64
+
+training:
+  dataset_dir: ${dataset.dataset_dir}
+  dataset_file: "roboflow"
+  output_dir: "experiments/uavdt_v2/${model.name}" # separate from experiments/uavdt/ (existing zoo runs)
+  epochs: 20 # existing runs peaked at epoch 0; a short cosine run keeps the LR tail without wasting time
+  batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
+  grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
+  # Half of RF-DETR's 1e-4 default: validation fell right after epoch 0 at 1e-4 (untested hypothesis).
+  learning_rate: 0.00005
+  learning_rate_encoder: 0.000075 # keeps RF-DETR's 1.5x encoder ratio
+  scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a 20-epoch run never reaches
+  warmup_epochs: 0.5 # ~640 steps at effective batch 16; the old runs had none
+  checkpoint_interval: 5
+  eval_interval: 1
+  workers: 8
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto"
+  tensorboard: true
+  wandb: false
+  early_stopping: true
+  early_stopping_patience: 5 # val peaks early and is a weak proxy for test, so don't wait long
+  early_stopping_min_delta: 0.001
+  progress_bar: "rich"
+  augmentation_backend: "gpu"
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

@@ -74,3 +74,41 @@ def test_bbox_corners_normalized(tmp_path: Path) -> None:
     car = next(a for a in payload["annotations"] if a["category_id"] == 0)
     # exterior [[100,40],[20,10]] -> x_min 20, y_min 10, w 80, h 30
     assert car["bbox"] == [20.0, 10.0, 80.0, 30.0]
+
+
+def _write_test_sequences(raw_dir: Path, sequences: dict[str, list[int]]) -> None:
+    """Write test frames; ``sequences`` maps a sequence id to per-frame box counts."""
+    (raw_dir / "test" / "img").mkdir(parents=True, exist_ok=True)
+    (raw_dir / "test" / "ann").mkdir(parents=True, exist_ok=True)
+    for seq, box_counts in sequences.items():
+        for frame, count in enumerate(box_counts):
+            name = f"{seq}_img{frame:06d}.jpg"
+            (raw_dir / "test" / "img" / name).write_bytes(b"fake")
+            objs = [_rect("car", 10, 10, 50, 40) for _ in range(count)]
+            (raw_dir / "test" / "ann" / f"{name}.json").write_text(
+                json.dumps(_ann(objs))
+            )
+
+
+def test_unlabelled_sequences_are_dropped_but_partially_empty_ones_kept(
+    tmp_path: Path,
+) -> None:
+    raw_dir = tmp_path / "raw"
+    out = tmp_path / "canonical"
+    _write_ninja(raw_dir)
+    # S9999: no boxes on any frame (a tracking-only sequence) -> dropped.
+    # M0404: some empty frames, but labelled overall -> kept, empty frames included.
+    _write_test_sequences(raw_dir, {"S9999": [0, 0, 0], "M0404": [2, 0, 1, 0]})
+
+    UAVDTAdapter().prepare_coco(raw_dir, out)
+
+    payload = json.loads((out / "test" / "_annotations.coco.json").read_text())
+    names = {im["file_name"].split("_img")[0] for im in payload["images"]}
+    assert "S9999" not in names
+    assert "M0404" in names
+    m0404 = [im for im in payload["images"] if im["file_name"].startswith("M0404")]
+    assert len(m0404) == 4  # empty frames of a labelled sequence stay as negatives
+    assert not (out / "test" / "S9999_img000000.jpg").exists()
+    # Image ids stay contiguous after dropping frames.
+    ids = [im["id"] for im in payload["images"]]
+    assert ids == list(range(1, len(ids) + 1))

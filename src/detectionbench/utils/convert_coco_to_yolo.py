@@ -24,7 +24,7 @@ Input directory layout expected (canonical COCO layout):
 Output directory layout produced:
   output_dir/
   ├── images/
-  │   ├── train/  (symlinked from input_dir/train/, default)
+  │   ├── train/  (symlinked from input_dir/train/ by default)
   │   ├── val/
   │   └── test/
   ├── labels/
@@ -41,6 +41,13 @@ Usage:
   python -m detectionbench.utils.convert_coco_to_yolo \\
       --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset \\
       --copy-images
+
+  # Hardlink image files (same filesystem): no extra disk, and the output tree
+  # holds real file entries, so it can be tarred/rsynced to another machine
+  # without dangling absolute symlinks. Falls back to a copy across filesystems.
+  python -m detectionbench.utils.convert_coco_to_yolo \\
+      --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset \\
+      --hardlink-images
 """
 
 from __future__ import annotations
@@ -51,6 +58,8 @@ import os
 import shutil
 from pathlib import Path
 from typing import Any
+
+from detectionbench.datasets.base import link_image
 
 COCO_ANNOTATION_FILENAME = "_annotations.coco.json"
 # Canonical COCO split directory name -> conventional Ultralytics split name.
@@ -70,17 +79,29 @@ def parse_args() -> argparse.Namespace:
         help="Canonical COCO dataset root (contains train/, valid/, test/)",
     )
     parser.add_argument("--output-dir", required=True, help="Output YOLO dataset root")
-    parser.add_argument(
+    link_mode = parser.add_mutually_exclusive_group()
+    link_mode.add_argument(
         "--copy-images",
         action="store_true",
         default=False,
         help="Copy image bytes instead of symlinking (default: symlink)",
     )
+    link_mode.add_argument(
+        "--hardlink-images",
+        action="store_true",
+        default=False,
+        help="Hardlink images instead of symlinking (no extra disk; falls back "
+        "to a copy across filesystems). The output stays valid when moved.",
+    )
     return parser.parse_args()
 
 
 def convert_split(
-    coco_split_dir: Path, output_dir: Path, yolo_split: str, copy_images: bool
+    coco_split_dir: Path,
+    output_dir: Path,
+    yolo_split: str,
+    copy_images: bool,
+    hardlink_images: bool = False,
 ) -> list[dict[str, Any]]:
     """Convert one canonical COCO split directory into YOLO images/labels."""
     annotation_path = coco_split_dir / COCO_ANNOTATION_FILENAME
@@ -116,6 +137,8 @@ def convert_split(
                 continue
             if copy_images:
                 shutil.copy2(src, dst)
+            elif hardlink_images:
+                link_image(src, dst)
             else:
                 os.symlink(src, dst)
         n_images += 1
@@ -182,7 +205,11 @@ def convert(args: argparse.Namespace) -> None:
             print(f"[WARN] Skipping '{coco_split}' — {annotation_path} not found.")
             continue
         categories = convert_split(
-            coco_split_dir, output_dir, yolo_split, args.copy_images
+            coco_split_dir,
+            output_dir,
+            yolo_split,
+            args.copy_images,
+            getattr(args, "hardlink_images", False),
         )
 
     if categories:

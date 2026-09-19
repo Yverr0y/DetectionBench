@@ -13,6 +13,17 @@ aware** validation split out of ``train`` (``_VAL_SEQUENCE_FRACTION`` of the
 30 training sequences, chosen by a seeded shuffle) so consecutive video
 frames from one sequence never straddle the train/val boundary.
 
+**Unlabelled sequences are dropped.** The Dataset Ninja export also contains
+UAVDT's single-object-tracking ``S*`` sequences (50 of the 70 ``test``
+sequences, 37,084 of 53,676 test frames), which carry no detection labels
+even though the frames show plenty of vehicles. Kept as-is they would be
+scored as pure background, turning every correct detection into a false
+positive (re-evaluating two models on only the labelled sequences roughly
+doubled their mAP). Any sequence with zero detection boxes across all its
+frames is therefore excluded from every split; a sequence with only *some*
+empty frames (e.g. ``M0203``) is kept, since those frames are real
+negatives.
+
 Classes: the canonical UAVDT-DET taxonomy is ``car`` / ``truck`` / ``bus``
 (the Dataset Ninja ``vehicle`` class is unused in practice); any object
 outside these three is dropped.
@@ -134,24 +145,64 @@ class UAVDTAdapter(DatasetAdapter):
             )
 
 
+def _parse_annotation(annotation_path: Path) -> tuple[int, int, list[list[float]]]:
+    """Return ``(width, height, boxes)``; each box is ``[cls, x, y, w, h]``."""
+    data = json.loads(annotation_path.read_text(encoding="utf-8"))
+    boxes: list[list[float]] = []
+    for obj in data.get("objects", []):
+        if obj.get("geometryType") != _RECTANGLE:
+            continue
+        class_id = _CLASS_INDEX.get(obj["classTitle"])
+        if class_id is None:
+            continue
+        exterior = obj["points"]["exterior"]
+        if len(exterior) != _BOX_CORNER_COUNT:
+            continue
+        (x1, y1), (x2, y2) = exterior
+        x_min, x_max = sorted((float(x1), float(x2)))
+        y_min, y_max = sorted((float(y1), float(y2)))
+        box_width = x_max - x_min
+        box_height = y_max - y_min
+        if box_width <= 0 or box_height <= 0:
+            continue
+        boxes.append([class_id, x_min, y_min, box_width, box_height])
+    return int(data["size"]["width"]), int(data["size"]["height"]), boxes
+
+
 def _convert_split(
     image_paths: list[Path], annotation_dir: Path, split_output_dir: Path
 ) -> None:
     """Parse one split's Supervisely annotations into a canonical COCO JSON."""
     split_output_dir.mkdir(parents=True, exist_ok=True)
 
-    images: list[dict[str, Any]] = []
-    annotations: list[dict[str, Any]] = []
-    annotation_id = 1
-
-    for image_id, image_path in enumerate(image_paths, start=1):
+    parsed: list[tuple[Path, int, int, list[list[float]]]] = []
+    boxes_per_sequence: dict[str, int] = {}
+    for image_path in image_paths:
         annotation_path = annotation_dir / f"{image_path.name}.json"
         if not annotation_path.exists():
             continue
-        data = json.loads(annotation_path.read_text(encoding="utf-8"))
-        width = int(data["size"]["width"])
-        height = int(data["size"]["height"])
+        width, height, boxes = _parse_annotation(annotation_path)
+        parsed.append((image_path, width, height, boxes))
+        sequence = _sequence_of(image_path.name)
+        boxes_per_sequence[sequence] = boxes_per_sequence.get(sequence, 0) + len(boxes)
 
+    # A sequence with no boxes at all is unlabelled (UAVDT's SOT sequences), not
+    # a run of true negatives -- drop it rather than score its vehicles as FPs.
+    unlabelled = {seq for seq, count in boxes_per_sequence.items() if count == 0}
+    if unlabelled:
+        dropped = sum(1 for path, *_ in parsed if _sequence_of(path.name) in unlabelled)
+        print(
+            f"[{split_output_dir.name}] dropped {dropped} frames from "
+            f"{len(unlabelled)} sequences with no detection labels"
+        )
+
+    images: list[dict[str, Any]] = []
+    annotations: list[dict[str, Any]] = []
+    annotation_id = 1
+    for image_path, width, height, boxes in parsed:
+        if _sequence_of(image_path.name) in unlabelled:
+            continue
+        image_id = len(images) + 1
         link_image(image_path, split_output_dir / image_path.name)
         images.append(
             {
@@ -161,28 +212,12 @@ def _convert_split(
                 "height": height,
             }
         )
-
-        for obj in data.get("objects", []):
-            if obj.get("geometryType") != _RECTANGLE:
-                continue
-            class_id = _CLASS_INDEX.get(obj["classTitle"])
-            if class_id is None:
-                continue
-            exterior = obj["points"]["exterior"]
-            if len(exterior) != _BOX_CORNER_COUNT:
-                continue
-            (x1, y1), (x2, y2) = exterior
-            x_min, x_max = sorted((float(x1), float(x2)))
-            y_min, y_max = sorted((float(y1), float(y2)))
-            box_width = x_max - x_min
-            box_height = y_max - y_min
-            if box_width <= 0 or box_height <= 0:
-                continue
+        for class_id, x_min, y_min, box_width, box_height in boxes:
             annotations.append(
                 {
                     "id": annotation_id,
                     "image_id": image_id,
-                    "category_id": class_id,
+                    "category_id": int(class_id),
                     "bbox": [x_min, y_min, box_width, box_height],
                     "area": box_width * box_height,
                     "segmentation": [],
