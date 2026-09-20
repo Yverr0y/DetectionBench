@@ -22,7 +22,7 @@ def test_visdrone_rfdetr_config_builds_kwargs():
     assert training["lr_scheduler"] == "cosine"
     assert training["warmup_epochs"] == 1.0
     assert training["resolution"] == 896
-    assert "visdrone_v2" in training["output_dir"]
+    assert training["output_dir"].endswith("experiments/visdrone/rfdetr-medium")
     assert build_model_kwargs(cfg, device_key="training")["num_classes"] == 11
 
 

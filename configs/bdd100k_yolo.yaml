@@ -44,6 +44,9 @@ training:
   workers: 8
   use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
   device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
   # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
   extra_args:
     warmup_epochs: 1.0 # default 3.0; with ~930 steps per epoch, 1 epoch is already ~930 warmup steps

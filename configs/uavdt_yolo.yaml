@@ -42,10 +42,13 @@ training:
   scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
   use_amp: true
   patience: 8 # val peaks early and is a weak proxy for test, so don't wait long
-  output_dir: "experiments/uavdt_v2/${model.name}" # separate from experiments/uavdt/ (existing zoo runs)
+  output_dir: "experiments/uavdt/${model.name}"
   workers: 8
   use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
   device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
   # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
   extra_args:
     warmup_epochs: 3.0 # default

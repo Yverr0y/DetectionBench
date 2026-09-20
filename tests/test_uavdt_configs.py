@@ -20,7 +20,7 @@ def test_uavdt_rfdetr_config_builds_kwargs():
     assert training["lr_scheduler"] == "cosine"
     assert training["warmup_epochs"] == 0.5
     assert training["resolution"] == 768
-    assert "uavdt_v2" in training["output_dir"]
+    assert training["output_dir"].endswith("experiments/uavdt/rfdetr-medium")
     assert build_model_kwargs(cfg, device_key="training")["num_classes"] == 3
 
 

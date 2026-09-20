@@ -71,6 +71,7 @@ def train_and_evaluate(cfg: DictConfig) -> None:
         optimizer=cfg.training.optimizer,
         cos_lr=cos_lr,
         augment=cfg.training.use_augmentation,
+        resume=cfg.training.get("resume"),
         **extra_args,
     )
     if not results["model_path"]:

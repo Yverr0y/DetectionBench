@@ -35,11 +35,13 @@ training:
   scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
   use_amp: true
   patience: 25 # 548 val images make mAP noisy, so don't stop on a short plateau; cosine's tail often gains late
-  # Separate from experiments/visdrone/ (existing zoo runs) so nothing is overwritten.
-  output_dir: "experiments/visdrone_v2/${model.name}"
+  output_dir: "experiments/visdrone/${model.name}"
   workers: 8
   use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
   device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
   # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
   extra_args:
     warmup_epochs: 3.0 # default; keeps early steps stable with the higher-resolution, denser batches

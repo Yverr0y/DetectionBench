@@ -33,6 +33,18 @@ Framework-specific tuning knobs not exposed here (Ultralytics'
 `inference_dtype`/GPU-cleanup flags) are still reachable by calling
 `evaluate_yolo.py`/`evaluate_rfdetr.py` directly -- see their own docstrings.
 
+With ``--config-name`` the dataset, checkpoint and output locations (and, as a last
+resort, the RF-DETR resolution) come from the same Hydra config used for training,
+so evaluating a run needs only the model name:
+
+  detectionbench-evaluate --config-name uavdt_rfdetr --model rfdetr-nano
+  detectionbench-evaluate --config-name configs/uavdt_yolo.yaml --model yolov8n
+
+Explicit flags always win over the config. For RF-DETR the resolution is taken from
+``training_config.json`` next to the checkpoint when present (it records what the
+model was really trained at, including per-model ``model.resolution`` overrides),
+then from ``--resolution``/the config, then the model family default.
+
 Usage:
   detectionbench-evaluate --model yolov8n --dataset lisa \\
       --checkpoint experiments/lisa/yolov8n/weights/best.pt
@@ -48,13 +60,15 @@ from typing import Any
 
 import torch
 import yaml
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 
 from detectionbench.datasets import get_spec, list_datasets
+from detectionbench.utils.rfdetr import read_training_resolution
 from detectionbench.utils.utils import RichConsoleManager
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DATASET_CONFIG_DIR = REPO_ROOT / "configs" / "dataset"
+CONFIGS_DIR = REPO_ROOT / "configs"
+DATASET_CONFIG_DIR = CONFIGS_DIR / "dataset"
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,16 +79,28 @@ def parse_args() -> argparse.Namespace:
         epilog=__doc__,
     )
     parser.add_argument(
-        "--checkpoint", required=True, help="Path to model checkpoint/weights"
+        "--config-name",
+        default=None,
+        help="Training Hydra config to take defaults from: a name in configs/ "
+        "(e.g. uavdt_rfdetr) or a path (e.g. configs/uavdt_rfdetr.yaml). Supplies "
+        "--dataset, --checkpoint, --output-dir and --split unless given explicitly.",
     )
     parser.add_argument(
-        "--model", required=True, help="Model name, e.g. yolov8n or rfdetr-nano"
+        "--checkpoint",
+        default=None,
+        help="Path to model checkpoint/weights (required unless --config-name)",
+    )
+    parser.add_argument(
+        "--model",
+        default=None,
+        help="Model name, e.g. yolov8n or rfdetr-nano (default with --config-name: "
+        "the config's model.name)",
     )
     parser.add_argument(
         "--dataset",
-        required=True,
+        default=None,
         choices=list_datasets(),
-        help="Registered dataset key",
+        help="Registered dataset key (required unless --config-name)",
     )
     parser.add_argument(
         "--num-classes",
@@ -101,7 +127,12 @@ def parse_args() -> argparse.Namespace:
         help="RF-DETR input resolution (default: the one recorded in the "
         "checkpoint's training_config.json, else the model family default)",
     )
-    parser.add_argument("--split", default="test", help="Dataset split to evaluate")
+    parser.add_argument(
+        "--split",
+        default=None,
+        help="Dataset split to evaluate (default: the config's dataset.eval_split "
+        "with --config-name, else test)",
+    )
     parser.add_argument(
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
     )
@@ -124,7 +155,71 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Save predictions JSON (YOLO/RT-DETR only)",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    _apply_config(args, parser)
+    return args
+
+
+def _compose_config(config_name: str, model: str | None) -> DictConfig:
+    """Compose a training Hydra config (by name or path), optionally for one model."""
+    from hydra import compose, initialize_config_dir
+    from hydra.core.global_hydra import GlobalHydra
+
+    path = Path(config_name)
+    config_dir = path.resolve().parent if path.parent != Path(".") else CONFIGS_DIR
+    name = path.stem if path.suffix in {".yaml", ".yml"} else path.name
+    overrides = [f"model.name={model}"] if model else []
+    GlobalHydra.instance().clear()
+    with initialize_config_dir(config_dir=str(config_dir), version_base=None):
+        return compose(config_name=name, overrides=overrides)
+
+
+def _apply_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    """Fill unset arguments from ``--config-name``, then validate the required ones."""
+    if args.config_name:
+        cfg = _compose_config(args.config_name, args.model)
+        args.model = args.model or str(cfg.model.name)
+        is_yolo = args.model.lower().startswith(("yolo", "rtdetr"))
+        config_is_yolo = "dataset_yaml" in cfg.training
+        if is_yolo != config_is_yolo:
+            parser.error(
+                f"--config-name {args.config_name} is a "
+                f"{'YOLO/RT-DETR' if config_is_yolo else 'RF-DETR'} config but "
+                f"--model {args.model} is a {'YOLO/RT-DETR' if is_yolo else 'RF-DETR'} "
+                "model."
+            )
+        args.dataset = args.dataset or str(cfg.dataset.name)
+        args.split = args.split or str(cfg.dataset.get("eval_split", "test"))
+        if is_yolo:
+            args.checkpoint = args.checkpoint or str(cfg.evaluation.checkpoint)
+            args.output_dir = args.output_dir or str(cfg.evaluation.output_dir)
+        else:
+            run_dir = Path(str(cfg.training.output_dir))
+            args.checkpoint = args.checkpoint or str(
+                run_dir / "checkpoint_best_total.pth"
+            )
+            args.output_dir = args.output_dir or str(run_dir / "evaluation")
+            config_resolution = cfg.model.get("resolution")
+            # training_config.json (next to the checkpoint) is the truth about what
+            # the model was trained at; the config's resolution is only a default
+            # that per-model overrides (e.g. model.resolution=640) may have changed.
+            if (
+                args.resolution is None
+                and config_resolution is not None
+                and read_training_resolution(args.checkpoint) is None
+            ):
+                args.resolution = int(config_resolution)
+                RichConsoleManager.get_console().print(
+                    f"[yellow]No training_config.json next to {args.checkpoint}; "
+                    f"using the config's resolution {args.resolution}. Pass "
+                    "--resolution if this model was trained with an override."
+                    "[/yellow]"
+                )
+    for flag in ("model", "dataset", "checkpoint"):
+        if getattr(args, flag) is None:
+            parser.error(f"--{flag} is required (or pass --config-name)")
+    if args.split is None:
+        args.split = "test"
 
 
 def _load_dataset_cfg(dataset_key: str) -> dict[str, Any]:

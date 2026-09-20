@@ -9,6 +9,7 @@ from detectionbench.datasets.registry import register
 _KNOWN_KEYS = {
     "bdd100k",
     "brackish",
+    "ceymo",
     "doclaynet",
     "duo",
     "exdark",
@@ -20,6 +21,7 @@ _KNOWN_KEYS = {
     "llvip",
     "marida",
     "neudet",
+    "pklot",
     "publaynet",
     "rdd2022",
     "seadronessee",

@@ -1,0 +1,36 @@
+# dataset/pklot.yaml
+# Hydra `dataset` config group entry for PKLot (parking-space occupancy detection).
+#
+# Converted from the official PKLot release (`PKLot/<lot>/<weather>/<date>/*.jpg`
+# + per-frame XML space descriptors) via:
+#   detectionbench-prepare-coco --dataset pklot --raw-dir <PKLot_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# <PKLot_dir> is the extracted top-level folder containing `PKLot/` (full frames)
+# and `PKLotSegmented/` (unused).
+#
+# There is no official split. The adapter assigns whole (lot, capture-day)
+# groups to train/valid/test per lot (seeded, ~70/15/15) so no day spans two
+# splits -- see src/detectionbench/datasets/pklot.py. Every camera appears in
+# every split, so this measures generalisation to unseen days, not new lots.
+#
+# Framing caveat: PKLot's own task is per-space classification of fixed regions;
+# here each labelled space is a detection box (vacant / occupied), so scores are
+# not comparable to free-form car detection.
+#
+# License: CC BY 4.0 (official page and tarball licence file).
+#
+# Stats: see ../../docs/datasets/pklot/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: pklot
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/PKLot/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/PKLot/coco_dataset
+num_classes: 2
+
+eval_split: test

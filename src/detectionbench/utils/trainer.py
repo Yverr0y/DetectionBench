@@ -110,6 +110,7 @@ class YOLOTrainer:
         optimizer: str = "auto",
         cos_lr: bool = False,
         augment: bool = True,
+        resume: str | Path | bool | None = None,
         **extra_kwargs: Any,
     ) -> dict[str, Any]:
         """
@@ -133,6 +134,14 @@ class YOLOTrainer:
             augment: When False, disable train-time augmentation by zeroing
                 every augmentation hyperparameter (see ``_NO_AUGMENTATION_HYP``);
                 explicit hyps in ``extra_kwargs`` still win.
+            resume: Continue an interrupted run instead of starting a new one.
+                ``None``/``False`` trains from scratch; ``True`` (or ``"last"``)
+                resumes from ``<output_dir>/<model>/weights/last.pt``; a path
+                resumes from that checkpoint. The epoch count, optimizer state and
+                hyperparameters come from the checkpoint (Ultralytics ignores
+                changes to them), and training continues in the checkpoint's own
+                run directory. A checkpoint from a *finished* run is refused
+                rather than silently starting a fresh training over it.
             **extra_kwargs: Passed directly to ultralytics.YOLO.train()
 
         Returns:
@@ -142,7 +151,12 @@ class YOLOTrainer:
         output_dir = Path(output_dir).resolve()  # must be absolute so Ultralytics
         output_dir.mkdir(parents=True, exist_ok=True)  # doesn't prefix runs/detect/
 
-        model = self._UltralyticsYOLO(self._pt_name)
+        resume_path = self._resolve_resume(resume, output_dir)
+        if resume_path is not None:
+            model = self._UltralyticsYOLO(str(resume_path))
+            self._ensure_resumable(model, resume_path)
+        else:
+            model = self._UltralyticsYOLO(self._pt_name)
 
         optimizer = _OPTIMIZER_ALIASES.get(optimizer.strip().lower(), optimizer)
 
@@ -165,11 +179,18 @@ class YOLOTrainer:
         if not augment:
             train_kwargs.update(_NO_AUGMENTATION_HYP)
         train_kwargs.update(extra_kwargs)
+        if resume_path is not None:
+            train_kwargs["resume"] = True
 
         results = model.train(**train_kwargs)
 
-        # Ultralytics saves best/last weights under project/name/weights/
-        weights_dir = output_dir / self._model_name / "weights"
+        # Ultralytics saves best/last weights under project/name/weights/ -- or, when
+        # resuming, next to the checkpoint it resumed from.
+        weights_dir = (
+            resume_path.parent
+            if resume_path is not None
+            else output_dir / self._model_name / "weights"
+        )
         best_model = weights_dir / "best.pt"
         last_model = weights_dir / "last.pt"
         final_path = best_model if best_model.exists() else last_model
@@ -177,5 +198,38 @@ class YOLOTrainer:
         return {
             "results": results,
             "model_path": str(final_path) if final_path.exists() else None,
-            "output_dir": str(output_dir / self._model_name),
+            "output_dir": str(
+                weights_dir.parent
+                if resume_path is not None
+                else output_dir / self._model_name
+            ),
         }
+
+    def _resolve_resume(
+        self, resume: str | Path | bool | None, output_dir: Path
+    ) -> Path | None:
+        """Map the ``resume`` option to a checkpoint path, or None for a fresh run."""
+        if resume is None or resume is False or resume == "":
+            return None
+        if resume is True or str(resume).strip().lower() in {"true", "last", "auto"}:
+            candidate = output_dir / self._model_name / "weights" / "last.pt"
+        else:
+            candidate = Path(str(resume)).expanduser().resolve()
+        if not candidate.is_file():
+            raise FileNotFoundError(
+                f"Cannot resume: checkpoint not found at {candidate}. Pass "
+                "training.resume=<path/to/last.pt>, or leave it unset to start fresh."
+            )
+        return candidate
+
+    @staticmethod
+    def _ensure_resumable(model: Any, checkpoint: Path) -> None:
+        """Refuse checkpoints Ultralytics would not resume (e.g. a finished run)."""
+        ckpt = getattr(model, "ckpt", None) or {}
+        if ckpt.get("epoch", -1) < 0 or ckpt.get("optimizer") is None:
+            raise ValueError(
+                f"{checkpoint} is not a resumable checkpoint (no optimizer state / "
+                "training already finished). Ultralytics would start a new training "
+                "over it instead, so resume was refused; drop training.resume to "
+                "train from scratch."
+            )

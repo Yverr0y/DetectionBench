@@ -27,6 +27,9 @@ training:
   workers: 4 # Number of workers for data loading
   use_augmentation: true # Uses default augmentation pipeline from YOLOv5 repo, can be modified in the future if needed
   device: "cuda"  # or "cpu" if you want to train on CPU for whatever reason
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
 
 evaluation:
   # Evaluation parameters

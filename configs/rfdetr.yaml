@@ -39,7 +39,9 @@ training:
   early_stopping: true
   early_stopping_patience: 10
   early_stopping_min_delta: 0.001
-  progress_bar: "rich" # rich, tqdm, or null
+  # "rich" only draws on a real terminal -- piped through `| tee` (as in the run scripts) it shows no live
+  # bar. "tqdm" also prints in pipes/log files. Options: tqdm, rich, or null (off).
+  progress_bar: "tqdm"
   augmentation_backend: "gpu" # cpu, auto, gpu
   device: "cuda"
   seed: 42

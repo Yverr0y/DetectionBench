@@ -1,0 +1,27 @@
+# dataset/ceymo.yaml
+# Hydra `dataset` config group entry for CeyMo (road-marking detection).
+#
+# Converted from the official CeyMo release (`{train,test}/images/` +
+# Pascal-VOC `{train,test}/bbox_annotations/*.xml`) via:
+#   detectionbench-prepare-coco --dataset ceymo --raw-dir <CeyMo_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter keeps the official test set as `test` and carves a seeded 15%
+# validation slice out of train (see src/detectionbench/datasets/ceymo.py).
+#
+# License: MIT (GitHub repo LICENSE, confirmed via GitHub's license API).
+#
+# Stats: see ../../docs/datasets/ceymo/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: ceymo
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/CeyMo/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/CeyMo/coco_dataset
+num_classes: 11
+
+eval_split: test

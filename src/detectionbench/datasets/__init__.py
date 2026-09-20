@@ -3,6 +3,7 @@
 from detectionbench.datasets import (  # noqa: F401
     bdd100k,
     brackish,
+    ceymo,
     doclaynet,
     duo,
     exdark,
@@ -14,6 +15,7 @@ from detectionbench.datasets import (  # noqa: F401
     llvip,
     marida,
     neudet,
+    pklot,
     publaynet,
     rdd2022,
     seadronessee,

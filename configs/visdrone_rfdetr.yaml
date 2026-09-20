@@ -6,6 +6,15 @@
 # Evaluation reads the resolution back from training_config.json (detectionbench-evaluate does this
 # automatically), so it will match training.
 #
+# Evaluate on the test split after training (RF-DETR training does not evaluate on its own). The config
+# supplies the dataset, checkpoint (experiments/visdrone/<model>/checkpoint_best_total.pth) and output folder:
+#   detectionbench-evaluate --config-name visdrone_rfdetr --model rfdetr-nano
+#   detectionbench-evaluate --config-name visdrone_rfdetr --model rfdetr-small
+#   detectionbench-evaluate --config-name visdrone_rfdetr --model rfdetr-medium
+# The resolution is taken from training_config.json next to the checkpoint (what the model was really trained
+# at, including the per-model overrides above); pass --resolution only if that file is missing.
+# The COCO folder comes from configs/dataset/visdrone.yaml; on another machine add --dataset-dir <coco folder>.
+#
 # Why VisDrone needs its own settings (from docs/datasets/visdrone/README.md + the existing zoo's
 # training_config.json files):
 #   * Median box is ~26 px on a ~1400 px-wide native frame. The existing zoo trained RF-DETR at 384 / 512 / 576,
@@ -33,7 +42,7 @@ model:
 training:
   dataset_dir: ${dataset.dataset_dir}
   dataset_file: "roboflow"
-  output_dir: "experiments/visdrone_v2/${model.name}" # separate from experiments/visdrone/ (existing zoo runs)
+  output_dir: "experiments/visdrone/${model.name}"
   epochs: 100 # cosine decays over the whole run; the old runs' best epochs were 41-123 with a flat LR
   batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
   grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
@@ -52,7 +61,7 @@ training:
   early_stopping: true
   early_stopping_patience: 20 # 548 val images make mAP noisy; cosine's low-LR tail often gains late
   early_stopping_min_delta: 0.001
-  progress_bar: "rich"
+  progress_bar: "tqdm" # "rich" shows no live bar when piped through tee; tqdm does
   augmentation_backend: "gpu"
   device: "cuda"
   seed: 42

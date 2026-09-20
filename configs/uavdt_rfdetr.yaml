@@ -6,6 +6,17 @@
 # Evaluation reads the resolution back from training_config.json (detectionbench-evaluate does this
 # automatically), so it will match training.
 #
+# Evaluate on the test split after training (RF-DETR training does not evaluate on its own). The config
+# supplies the dataset, checkpoint (experiments/uavdt/<model>/checkpoint_best_total.pth) and output folder:
+#   detectionbench-evaluate --config-name uavdt_rfdetr --model rfdetr-nano
+#   detectionbench-evaluate --config-name uavdt_rfdetr --model rfdetr-small
+#   detectionbench-evaluate --config-name uavdt_rfdetr --model rfdetr-medium
+# The resolution is taken from training_config.json next to the checkpoint (what the model was really trained
+# at, including the per-model overrides above); pass --resolution only if that file is missing.
+# The COCO folder comes from configs/dataset/uavdt.yaml; on another machine add --dataset-dir <coco folder>.
+# NOTE for UAVDT: pass --dataset-dir with the labelled-only COCO folder (coco_labelled) -- the path in
+# configs/dataset/uavdt.yaml still points at the older copy that contains the unlabelled test frames.
+#
 # What the data and the existing UAVDT zoo runs show:
 #   * Train is only 30 video sequences (20,591 near-duplicate 1024x540 frames); val is 6 more sequences carved from
 #     train (3,552 frames). All three existing RF-DETR runs peaked at epoch 0 (val mAP@50-95 0.28 / 0.34 / 0.37) and
@@ -39,7 +50,7 @@ model:
 training:
   dataset_dir: ${dataset.dataset_dir}
   dataset_file: "roboflow"
-  output_dir: "experiments/uavdt_v2/${model.name}" # separate from experiments/uavdt/ (existing zoo runs)
+  output_dir: "experiments/uavdt/${model.name}"
   epochs: 20 # existing runs peaked at epoch 0; a short cosine run keeps the LR tail without wasting time
   batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
   grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
@@ -59,7 +70,7 @@ training:
   early_stopping: true
   early_stopping_patience: 5 # val peaks early and is a weak proxy for test, so don't wait long
   early_stopping_min_delta: 0.001
-  progress_bar: "rich"
+  progress_bar: "tqdm" # "rich" shows no live bar when piped through tee; tqdm does
   augmentation_backend: "gpu"
   device: "cuda"
   seed: 42
