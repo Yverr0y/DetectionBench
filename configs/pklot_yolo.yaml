@@ -1,0 +1,76 @@
+# pklot_yolo.yaml
+# PKLot-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead of config.yaml:
+#   detectionbench-train --config-name pklot_yolo model.name=yolov8m
+#
+# What the data shows (docs/datasets/pklot/README.md + the converted COCO annotations), and how it
+# differs from the other dense-detection datasets already configured (VisDrone/UAVDT/HRP4K):
+#   * Boxes are NOT small here: median box is ~57 px on the native 1280x720 frame (0.35% of image
+#     area), comfortably detectable even at modest input sizes -- unlike VisDrone/UAVDT/HRP4K, input
+#     resolution is not the limiting factor for this dataset.
+#   * Very dense: ~56 boxes/image on average (median 40, up to 100 -- PUCPR alone has 100+ marked
+#     spaces, so ~33% of train images hit that ceiling). Two balanced classes (vacant 51.6% / occupied
+#     48.4%), so this is a class-balanced but crowded-scene detection task.
+#   * Medium-sized, dense dataset: 8,346 train images but ~466k boxes total -- similar image count to
+#     VisDrone (6,471) with about the same density, so a similar epoch budget is a reasonable start,
+#     without VisDrone's need for a large input size.
+#   * Fixed-camera caveat (see the adapter docstring): all frames come from 3 fixed cameras, so a
+#     detector can partly memorize per-camera space locations. Splits are grouped by (lot, day), so
+#     validation/test are unseen days on *seen* cameras, not new lots -- generalization to new camera
+#     positions is untested.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: pklot
+  - _self_
+
+model:
+  name: "yolov8m" # override per run, e.g. model.name=yolo26s
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 60 # dataset size/density is close to VisDrone's, but boxes are large and easy -- converges faster
+  # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
+  batch_size: -1
+  learning_rate: 0.001 # AdamW lr0, same family as the RDD2022/HRP4K recipes
+  imgsz: 960 # native is 1280 wide; boxes are large enough that resolution isn't the bottleneck here
+  optimizer: "AdamW"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 15 # converges fairly fast on large, easy boxes; don't wait as long as on the small-object datasets
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 3.0 # default
+    close_mosaic: 10 # default
+    mosaic: 1.0 # default
+    max_det: 300 # default; ~33% of images already have 100 ground-truth boxes, well within this cap
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 960 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

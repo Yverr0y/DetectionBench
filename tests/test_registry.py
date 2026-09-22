@@ -17,6 +17,7 @@ _KNOWN_KEYS = {
     "gwhd",
     "hrp4k",
     "hrsid",
+    "kitti",
     "lisa",
     "llvip",
     "marida",

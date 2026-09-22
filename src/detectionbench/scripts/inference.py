@@ -374,16 +374,31 @@ def _run_rfdetr_on_video(model: Any, options: InferenceOptions) -> tuple[int, in
     return total_det, num_frames
 
 
-def draw_detections(frame: np.ndarray, overlay: DetectionOverlay) -> np.ndarray:
-    """Draw bounding boxes and labels on a BGR frame."""
+def draw_detections(
+    frame: np.ndarray,
+    overlay: DetectionOverlay,
+    *,
+    box_thickness: int | None = None,
+    font_scale: float | None = None,
+    show_labels: bool = True,
+) -> np.ndarray:
+    """
+    Draw bounding boxes and labels on a BGR frame.
+
+    ``box_thickness``/``font_scale`` override the size-based defaults (useful for
+    high-resolution frames that will be shown downscaled), and
+    ``show_labels=False`` draws boxes only (dense scenes).
+    """
     out = frame.copy()
     h, w = out.shape[:2]
 
     # Much more conservative scaling
     scale = max(h, w) / 2000.0
 
-    box_thickness = max(1, int(scale))
-    font_scale = max(0.3, scale * 0.35)
+    if box_thickness is None:
+        box_thickness = max(1, int(scale))
+    if font_scale is None:
+        font_scale = max(0.3, scale * 0.35)
     font_thickness = 1
 
     for box, score, label in zip(
@@ -403,6 +418,9 @@ def draw_detections(frame: np.ndarray, overlay: DetectionOverlay) -> np.ndarray:
             color,
             box_thickness,
         )
+
+        if not show_labels:
+            continue
 
         name = (
             overlay.class_names[label]

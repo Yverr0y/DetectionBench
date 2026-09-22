@@ -1,0 +1,74 @@
+# kitti_yolo.yaml
+# KITTI-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead of config.yaml:
+#   detectionbench-train --config-name kitti_yolo model.name=yolov8n
+#
+# YOLO-only for now (no RF-DETR config yet -- add configs/kitti_rfdetr.yaml + a resolution scheme
+# the same way as the other datasets if/when RF-DETR runs are wanted here).
+#
+# What the data shows (docs/datasets/kitti/README.md + the converted COCO annotations):
+#   * No official test split: KITTI's real test-set labels were never released, so this adapter (following
+#     the field-standard Chen et al. 2015 split) only has train (3,712) / valid (3,769) -- "valid" is both
+#     the early-stopping signal and the final reported metric, same as every paper that uses this split.
+#   * Unusual, near-constant aspect ratio: every frame is ~1242x375 (width:height ~3.3:1, not the usual
+#     4:3/16:9), so square-letterboxed training/inference wastes a lot of the canvas on padding above and
+#     below the actual content. Bumping imgsz compensates for that lost effective resolution rather than
+#     fixing the underlying waste; Ultralytics' rectangular-batch training (`rect=True`) would use the
+#     canvas more efficiently but is disabled by default because it interacts with mosaic augmentation --
+#     not enabled here, left as a possible follow-up if resolution turns out to be a bottleneck.
+#   * Small, real driving-scene dataset: 3,712 train images = ~58 steps/epoch at nbs=64, in the same range
+#     as VisDrone (6,471) -- a similar epoch budget is a reasonable start. ~5.4 boxes/image, not dense.
+#   * Severe class imbalance across 8 classes: `Car` is 70.8% of boxes; `Person_sitting` has only 222
+#     instances total (0.5%) across all 7,481 images, so its per-class score will be noisy at best.
+#   * Objects are moderately sized: median box is ~57 px on the native frame (0.77% of image area, mean
+#     2.39%) -- at imgsz 640 only 16% of boxes fall under 16 px; at 1280 essentially none do.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: kitti
+  - _self_
+
+model:
+  name: "yolov8n" # override per run, e.g. model.name=yolo26s
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 100 # dataset size is close to VisDrone's; a real (non-memorization-prone) detection task
+  # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
+  batch_size: -1
+  learning_rate: 0.001 # AdamW lr0, same family as the RDD2022/HRP4K/PKLot recipes
+  imgsz: 1280 # compensates for the letterbox padding waste from KITTI's ~3.3:1 native aspect ratio
+  optimizer: "AdamW"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 20 # "valid" is the only evaluation signal here (no held-out test set), so don't stop too early
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline
+  device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 1280 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

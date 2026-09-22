@@ -268,3 +268,9 @@ scripts/
 split_test_test.ipynb
 src/detectionbench/scripts/generate_model_cards.py
 src/detectionbench/scripts/generate_readme_leaderboard.py
+
+# Model card generation tests (local-only, exercise the ignored
+# generate_model_cards.py pipeline above)
+tests/test_model_card_details.py
+tests/test_stage_yolo_assets.py
+tests/test_video_banner_config.py

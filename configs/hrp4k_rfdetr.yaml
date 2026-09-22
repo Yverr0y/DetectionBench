@@ -1,0 +1,73 @@
+# hrp4k_rfdetr.yaml
+# HRP4K-specific Hydra config for RF-DETR. Use instead of rfdetr.yaml, one resolution per model size:
+#   detectionbench-train --config-name hrp4k_rfdetr model.name=rfdetr-nano   model.resolution=768
+#   detectionbench-train --config-name hrp4k_rfdetr model.name=rfdetr-small  model.resolution=896
+#   detectionbench-train --config-name hrp4k_rfdetr model.name=rfdetr-medium model.resolution=1024
+#
+# Evaluate on the test split after training (RF-DETR training does not evaluate on its own). The config supplies the
+# dataset, checkpoint (experiments/hrp4k/<model>/checkpoint_best_total.pth) and output folder:
+#   detectionbench-evaluate --config-name hrp4k_rfdetr --model rfdetr-nano
+#   detectionbench-evaluate --config-name hrp4k_rfdetr --model rfdetr-small
+#   detectionbench-evaluate --config-name hrp4k_rfdetr --model rfdetr-medium
+# The resolution is taken from training_config.json next to the checkpoint (what the model was really trained at,
+# including the per-model overrides above); pass --resolution only if that file is missing.
+# The COCO folder comes from configs/dataset/hrp4k.yaml; on another machine add --dataset-dir <coco folder>.
+#
+# What the data shows (docs/datasets/hrp4k/README.md + the converted COCO annotations):
+#   * Every image is 3840x2160 (4K), one class (pothole), ~1.2 boxes/image, and ~1/3 of each split has no pothole.
+#   * Small dataset: 2,286 train images = ~143 steps per epoch at RF-DETR's effective batch of ~16, so it needs more
+#     epochs than the large driving datasets, and it can afford high input resolutions.
+#   * RF-DETR squares the frame (3840x2160 -> R x R), so a native box shrinks by ~R/2880 (the geometric mean of the
+#     sides). The median box is ~61 px native, i.e. ~9 / ~13 / ~17 px at the family defaults (384 / 512 / 576) but
+#     ~16 / ~19 / ~22 px at 768 / 896 / 1024 -- well above RF-DETR's 16 px patch stride for most boxes. Sizes must be
+#     multiples of 64 (patch 16 x 2 windows, square_resize_div_64).
+#   * The squaring also stretches the frame vertically (16:9 -> 1:1), so the wide potholes (median width/height ~2.9)
+#     look less wide to the model than they are; RF-DETR handles arbitrary aspect ratios, but keep it in mind.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: hrp4k
+  - _self_
+
+model:
+  name: "rfdetr-small"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: 896 # override per model size (see header); must be divisible by 64
+
+training:
+  dataset_dir: ${dataset.dataset_dir}
+  dataset_file: "roboflow"
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  epochs: 100 # ~143 steps/epoch -> ~14k steps; cosine decays over the whole run
+  batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
+  grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
+  learning_rate: 0.0001 # RF-DETR's fine-tuning default; unchanged at effective batch ~16
+  learning_rate_encoder: 0.00015
+  scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a 100-epoch run barely reaches
+  warmup_epochs: 1.0 # ~143 steps at effective batch 16
+  checkpoint_interval: 20
+  eval_interval: 1
+  workers: 8 # 4K JPEG decoding is the CPU-heavy part of this dataset
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto"
+  tensorboard: true
+  wandb: false
+  early_stopping: true
+  early_stopping_patience: 15 # ~1,000 validation boxes make mAP noisy; cosine's low-LR tail often gains late
+  early_stopping_min_delta: 0.001
+  progress_bar: "tqdm" # "rich" shows no live bar when piped through tee; tqdm does
+  augmentation_backend: "gpu"
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

@@ -1,0 +1,74 @@
+# hrp4k_yolo.yaml
+# HRP4K-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead of config.yaml:
+#   detectionbench-train --config-name hrp4k_yolo model.name=yolov8m
+#
+# What the data shows (docs/datasets/hrp4k/README.md + the converted COCO annotations):
+#   * Every image is 3840x2160 (4K). Single class (pothole), ~1.2 boxes per image, and about a third of the images
+#     in every split contain no pothole at all (train 789/2,286, valid 300/900, test 300/900) -- they act as negatives.
+#   * Small dataset: 2,286 train images = ~36 optimizer steps per epoch at nbs=64, so it needs more epochs than the
+#     large driving datasets, and the run is cheap enough to afford a high input resolution.
+#   * Objects are small relative to a 4K frame: the median box is ~61 px on the native frame (25th pct 33 px, 5th pct
+#     16 px) and wide (median width/height ~2.9). At imgsz 640 the median shrinks to ~10 px (67% of boxes under 16 px);
+#     at 1280 it is ~20 px (39% under 16 px); at 1536 ~24 px (33%); at 1920 ~30 px (24%).
+#   * Cost check: 2,286 images at 1920 is about the same work per epoch as VisDrone (6.5k images) at 1280.
+#   * Valid and test look alike (1.15 vs 1.02 boxes/image, 300 empty images each), so validation is a fair early-
+#     stopping signal, though with ~1,000 val boxes it is noisy.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: hrp4k
+  - _self_
+
+model:
+  name: "yolov8m" # override per run, e.g. model.name=yolo26s
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 150 # ~36 steps/epoch, so ~5.4k steps in total; a small dataset needs more epochs than the big ones
+  # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
+  batch_size: -1
+  # AdamW lr0 (close to Ultralytics' own auto value for one class); same family as the RDD2022 recipe.
+  learning_rate: 0.001
+  # Native is 3840 wide: 640 leaves 67% of the boxes under 16 px. 1920 is affordable too if you have the VRAM.
+  imgsz: 1536
+  optimizer: "AdamW" # under ~10k iterations Ultralytics itself would pick AdamW, pinned here for reproducibility
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 30 # ~1,000 validation boxes make mAP noisy, so don't stop on a short plateau
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  workers: 8 # 4K JPEG decoding is the CPU-heavy part of this dataset
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 3.0 # default
+    close_mosaic: 15 # default 10; scaled up with the longer run so the final no-mosaic phase stays ~10% of training
+    mosaic: 1.0 # default; mosaic gives the model many more (and smaller) potholes per training image
+    scale: 0.3 # default 0.5; a lower random-scale range avoids shrinking already-small potholes further
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 1536 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

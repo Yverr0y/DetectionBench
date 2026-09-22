@@ -1,0 +1,76 @@
+# pklot_rfdetr.yaml
+# PKLot-specific Hydra config for RF-DETR. Use instead of rfdetr.yaml, one resolution per model size:
+#   detectionbench-train --config-name pklot_rfdetr model.name=rfdetr-nano   model.resolution=512
+#   detectionbench-train --config-name pklot_rfdetr model.name=rfdetr-small  model.resolution=640
+#   detectionbench-train --config-name pklot_rfdetr model.name=rfdetr-medium model.resolution=768
+#
+# Evaluate on the test split after training (RF-DETR training does not evaluate on its own). The config
+# supplies the dataset, checkpoint (experiments/pklot/<model>/checkpoint_best_total.pth) and output folder:
+#   detectionbench-evaluate --config-name pklot_rfdetr --model rfdetr-nano
+#   detectionbench-evaluate --config-name pklot_rfdetr --model rfdetr-small
+#   detectionbench-evaluate --config-name pklot_rfdetr --model rfdetr-medium
+# The resolution is taken from training_config.json next to the checkpoint (what the model was really trained
+# at, including the per-model overrides above); pass --resolution only if that file is missing.
+# The COCO folder comes from configs/dataset/pklot.yaml; on another machine add --dataset-dir <coco folder>.
+#
+# What the data shows (docs/datasets/pklot/README.md + the converted COCO annotations), and how it differs
+# from the other dense-detection datasets already configured (VisDrone/UAVDT/HRP4K):
+#   * Boxes are NOT small: median box is ~57 px on the native 1280x720 frame. RF-DETR squares the frame
+#     (1280x720 -> R x R), so a native box shrinks by ~R/960 (the geometric mean of the sides): even at the
+#     family defaults (384/512/576) the median box is ~23/~30/~34 px, already above RF-DETR's 16 px patch
+#     stride -- unlike VisDrone/UAVDT/HRP4K, resolution is not the bottleneck here. The values below are a
+#     modest bump for extra margin, not a fix for an otherwise-broken setup. Sizes must be multiples of 64
+#     (patch 16 x 2 windows, square_resize_div_64).
+#   * Very dense: ~56 boxes/image on average, up to 100 (PUCPR) -- comfortably within RF-DETR's 300 queries.
+#   * Medium-sized dataset: 8,346 train images, similar in size to VisDrone (6,471) -- similar epoch budget
+#     is a reasonable start, without VisDrone's need for a large input size.
+#   * Fixed-camera caveat: all frames come from 3 fixed cameras; splits are grouped by (lot, day), so
+#     generalization is to unseen days on *seen* cameras, not new camera positions.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: pklot
+  - _self_
+
+model:
+  name: "rfdetr-small"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: 640 # override per model size (see header); must be divisible by 64
+
+training:
+  dataset_dir: ${dataset.dataset_dir}
+  dataset_file: "roboflow"
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  epochs: 60 # similar dataset size to VisDrone, but large/easy boxes converge faster
+  batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
+  grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
+  learning_rate: 0.0001 # RF-DETR's fine-tuning default
+  learning_rate_encoder: 0.00015
+  scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a 60-epoch run never reaches
+  warmup_epochs: 1.0
+  checkpoint_interval: 10
+  eval_interval: 1
+  workers: 8
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto"
+  tensorboard: true
+  wandb: false
+  early_stopping: true
+  early_stopping_patience: 15 # converges fairly fast on large, easy boxes
+  early_stopping_min_delta: 0.001
+  progress_bar: "tqdm" # "rich" shows no live bar when piped through tee; tqdm does
+  augmentation_backend: "gpu"
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

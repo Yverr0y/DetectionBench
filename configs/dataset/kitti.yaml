@@ -1,0 +1,44 @@
+# dataset/kitti.yaml
+# Hydra `dataset` config group entry for KITTI (2D object detection).
+#
+# Source: the official KITTI 2D object detection benchmark
+# (https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=2d,
+# registration-gated) -- `training/image_2/*.png` (the official "left
+# color images" zip) + `training/label_2/*.txt` (native KITTI label
+# format, from the "training labels" zip). Extract both official zips so
+# their `training/` trees merge at the same root before pointing
+# `raw-dir` here. Converted via:
+#   detectionbench-prepare-coco --dataset kitti --raw-dir <KITTI_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+#
+# KITTI has no official train/validation split -- only labelled-training
+# (7,481 images) vs. unlabelled-test (~7,518, no public boxes, not used at
+# all). This adapter uses the Chen et al. (2015, "3DOP") 3712/3769 split,
+# the de facto standard across the KITTI detection literature (still used
+# in 2024-2025 papers) -- vendored as exact id lists in
+# src/detectionbench/datasets/data/kitti_{train,val}_ids.txt. See
+# src/detectionbench/datasets/kitti.py for full provenance.
+#
+# No held-out test split exists (all labelled data is used for train+val);
+# `yolo_dataset/data.yaml`'s `test: images/test` line is therefore an
+# unpopulated schema placeholder (same convention as SeaDronesSee's config)
+# -- evaluate on `valid`, which is what "KITTI val" means in the literature.
+#
+# License: CC BY-NC-SA 3.0 (official KITTI terms, confirmed at
+# https://www.cvlibs.net/datasets/kitti/).
+#
+# Stats: see ../../docs/datasets/kitti/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: kitti
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/KITTI/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/KITTI/coco_dataset
+num_classes: 8
+
+eval_split: valid

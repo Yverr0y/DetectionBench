@@ -11,6 +11,7 @@ from detectionbench.datasets import (  # noqa: F401
     gwhd,
     hrp4k,
     hrsid,
+    kitti,
     lisa,
     llvip,
     marida,
