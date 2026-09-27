@@ -37,7 +37,7 @@ training:
   dataset_yaml: ${dataset.dataset_yaml}
   epochs: 100 # dataset size is close to VisDrone's; a real (non-memorization-prone) detection task
   # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
-  batch_size: -1
+  batch_size: 4
   learning_rate: 0.001 # AdamW lr0, same family as the RDD2022/HRP4K/PKLot recipes
   imgsz: 1280 # compensates for the letterbox padding waste from KITTI's ~3.3:1 native aspect ratio
   optimizer: "AdamW"

@@ -1,0 +1,75 @@
+# gc10det_rfdetr.yaml
+# GC10-DET-specific Hydra config for RF-DETR. Use instead of rfdetr.yaml, one resolution per model size:
+#   detectionbench-train --config-name gc10det_rfdetr model.name=rfdetr-nano   model.resolution=384
+#   detectionbench-train --config-name gc10det_rfdetr model.name=rfdetr-small  model.resolution=512
+#   detectionbench-train --config-name gc10det_rfdetr model.name=rfdetr-medium model.resolution=576
+#
+# Evaluate on the test split after training (RF-DETR training does not evaluate on its own). The config
+# supplies the dataset, checkpoint (experiments/gc10det/<model>/checkpoint_best_total.pth) and output
+# folder:
+#   detectionbench-evaluate --config-name gc10det_rfdetr --model rfdetr-nano
+#   detectionbench-evaluate --config-name gc10det_rfdetr --model rfdetr-small
+#   detectionbench-evaluate --config-name gc10det_rfdetr --model rfdetr-medium
+# The resolution is taken from training_config.json next to the checkpoint (what the model was really
+# trained at, including the per-model overrides above); pass --resolution only if that file is missing.
+# The COCO folder comes from configs/dataset/gc10det.yaml; on another machine add --dataset-dir <coco folder>.
+#
+# What the data shows (docs/datasets/gc10det/README.md + the converted COCO annotations), and how it
+# differs from every other dataset configured so far (all outdoor scenes shot from a vehicle/drone/
+# underwater rig -- this is the first industrial-inspection benchmark):
+#   * Boxes are NOT small: median box is 3.48% of the (2048x1000) image area. RF-DETR squares the frame,
+#     so even at its family-default resolutions (384/512/576) the median box comfortably clears the
+#     16 px patch stride -- unlike VisDrone/UAVDT/HRP4K, resolution is not the bottleneck here, so the
+#     defaults below are RF-DETR's own family defaults, not a bumped-up value.
+#   * Sparse: 1.55 instances/image on average (max 11) -- nowhere near RF-DETR's 300-query budget.
+#   * Very small dataset: 1,840 train images -- similar order of magnitude to HRP4K (2,286), so a
+#     comparable epoch budget is a reasonable start.
+#   * Class imbalance across the 10 defect types: silk_spot (24.8%) down to crease (2.1%).
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: gc10det
+  - _self_
+
+model:
+  name: "rfdetr-small"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: 512 # override per model size (see header); must be divisible by 64
+
+training:
+  dataset_dir: ${dataset.dataset_dir}
+  dataset_file: "roboflow"
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  epochs: 180 # small dataset, similar order of magnitude to HRP4K -- needs a larger epoch budget
+  batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
+  grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
+  learning_rate: 0.0001 # RF-DETR's fine-tuning default
+  learning_rate_encoder: 0.00015
+  scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a 180-epoch run does reach
+  warmup_epochs: 1.0
+  checkpoint_interval: 10
+  eval_interval: 1
+  workers: 8
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto"
+  tensorboard: true
+  wandb: false
+  early_stopping: true
+  early_stopping_patience: 25 # small val split (230 images) is noisier -- give it more room before stopping
+  early_stopping_min_delta: 0.001
+  progress_bar: "tqdm" # "rich" shows no live bar when piped through tee; tqdm does
+  augmentation_backend: "gpu"
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

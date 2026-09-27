@@ -1,0 +1,77 @@
+# gc10det_yolo.yaml
+# GC10-DET-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead of config.yaml:
+#   detectionbench-train --config-name gc10det_yolo model.name=yolov8m
+#
+# What the data shows (docs/datasets/gc10det/README.md + the converted COCO annotations), and how it
+# differs from every other dataset configured so far (all of which are outdoor scenes shot from a
+# vehicle/drone/underwater rig -- this is the first industrial-inspection benchmark):
+#   * Boxes are NOT small: median box is 3.48% of the (2048x1000) image area (mean 7.51%), comfortably
+#     detectable even at a modest input size -- unlike VisDrone/UAVDT/HRP4K, resolution is not the
+#     limiting factor here.
+#   * Sparse: only 1.55 instances/image on average (median 1, max 11) -- most images contain a single
+#     defect, unlike the crowded-scene datasets (PKLot/VisDrone/UAVDT).
+#   * Very small dataset: 1,840 train images (~29 optimizer steps/epoch at nbs=64) with no official
+#     split (the adapter creates a seeded 80/10/10 one) -- needs a larger epoch budget than the big
+#     driving/aerial datasets to see enough gradient steps, similar in spirit to HRP4K (2,286 images).
+#   * Class imbalance across the 10 defect types: silk_spot (24.8%) down to crease (2.1%) -- per-class
+#     scores on the rarest classes are measured on very few examples (74 crease instances total).
+#   * Wide native aspect (2048x1000, ~2.05:1): Ultralytics letterboxes rather than stretches, so this
+#     just means the effective resolution along the long edge is what matters -- already accounted for
+#     above.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: gc10det
+  - _self_
+
+model:
+  name: "yolov8m" # override per run, e.g. model.name=yolo26s
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 180 # small dataset (~29 steps/epoch) needs more epochs than the big driving/aerial datasets
+  # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
+  batch_size: -1
+  learning_rate: 0.001 # AdamW lr0, same family as the RDD2022/HRP4K/PKLot recipes
+  imgsz: 640 # boxes are large (median 3.48% of image area), so resolution isn't the bottleneck here
+  optimizer: "AdamW"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 25 # small val split (230 images) is noisier -- give it more room before stopping
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 3.0 # default
+    close_mosaic: 10 # default
+    mosaic: 1.0 # default
+    max_det: 300 # default; comfortably above the observed max of 11 instances/image
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 640 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

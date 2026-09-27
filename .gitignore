@@ -241,13 +241,11 @@ banners/
 # MD files
 prompts.md
 README_UAVid2020.md
-ROADMAP.md
 future.md
 
 # Extra files
 *.zip
 DetectionBench_Dataset_Inventory.md
-LEADERBOARDS.md
 assets/reddit_chart1_leaderboard.png
 assets/reddit_chart2_efficiency.png
 configs/dataset/hrp4k.yaml

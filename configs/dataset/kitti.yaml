@@ -41,4 +41,4 @@ dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/K
 dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/KITTI/coco_dataset
 num_classes: 8
 
-eval_split: valid
+eval_split: val

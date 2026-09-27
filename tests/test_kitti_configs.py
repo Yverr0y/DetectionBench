@@ -19,7 +19,7 @@ def test_kitti_yolo_config_has_high_imgsz_and_generous_patience() -> None:
     assert cfg.training.patience == 20
     assert cfg.training.resume is None
     assert cfg.dataset.name == "kitti"
-    assert cfg.dataset.eval_split == "valid"
+    assert cfg.dataset.eval_split == "val"  # Ultralytics data.yaml key, not "valid"
     assert cfg.model.num_classes == 8
 
 

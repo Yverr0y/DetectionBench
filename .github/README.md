@@ -7,7 +7,7 @@
 <!-- ROW 1: Core Identity (What this project is) -->
 <div style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
   <!-- Project Identity -->
-  <img src="https://img.shields.io/badge/Datasets-19%20registered-0aa1a7?style=flat-square" alt="Datasets">
+  <img src="https://img.shields.io/badge/Datasets-24%20registered-0aa1a7?style=flat-square" alt="Datasets">
 
   <!-- Tech Stack & Quality -->
   <a href="https://www.python.org/downloads/">
@@ -42,7 +42,7 @@ DetectionBench wraps two model families behind one CLI, trained and evaluated wi
 
 | Family | Backend | Example checkpoints | Entrypoints |
 | --- | --- | --- | --- |
-| **YOLO** | Ultralytics | `yolov8n/s/m`, `yolov9c/e`, `yolo11n/s/m`, ... | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
+| **YOLO** | Ultralytics | `yolov8n/s/m`, `yolov9c/e`, `yolo11n/s/m`, `yolo26n/s/m`, ... | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
 | **RT-DETR** | Ultralytics | `rtdetr-l`, `rtdetr-x` | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
 | **RF-DETR** | Roboflow `rfdetr` | `rfdetr-nano`, `rfdetr-small`, `rfdetr-medium`, `rfdetr-large` | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
 
@@ -61,6 +61,11 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 | **VisDrone-DET** | Object Detection | Aerial / UAV Surveillance | 11 | 8,629 [^3] | CC BY-NC-SA 3.0 | [Hugging Face](https://huggingface.co/datasets/Voxel51/VisDrone2019-DET) |
 | **GC10-DET** | Object Detection | Industrial / Metallic Surface Defect | 10 | 2,300 [^4] | CC BY 4.0 | [GitHub](https://github.com/lvxiaoming2019/GC10-DET-Metallic-Surface-Defect-Datasets) |
 | **RDD2022** | Object Detection | Road Infrastructure / Pavement Damage | 4 | 38,385 [^5] | CC BY-SA 4.0 | [GitHub](https://github.com/sekilab/RoadDamageDetector) |
+| **BDD100K** | Object Detection | Autonomous Driving | 10 | 79,863 [^16] | BDD100K License (non-commercial) [^16] | [Official Site](https://www.bdd100k.com/) |
+| **HRP4K** | Object Detection | Road Infrastructure / Pothole Detection | 1 | 4,086 [^17] | CC BY 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/HRP4K) |
+| **PKLot** | Object Detection | Smart Parking / Occupancy Detection | 2 | 12,416 [^18] | CC BY 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/PKLot) |
+| **KITTI** | Object Detection | Autonomous Driving | 8 | 7,481 [^19] | CC BY-NC-SA 3.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/KITTI) |
+| **CeyMo** | Object Detection | Autonomous Driving / Road Marking Detection | 11 | 2,887 [^20] | MIT | [GitHub](https://github.com/oshadajay/CeyMo) |
 | **UAVDT** | Object Detection / Tracking | Aerial / UAV Vehicle Surveillance | 3 | 77,819 [^6] | Research-use only [^6] | [Dataset Card](../dataset_cards/uavdt/README.md) |
 | **DUO** | Object Detection | Underwater Robot Picking | 4 | 7,782 [^7] | Unclear [^7] | [Dataset Card](../dataset_cards/duo/README.md) |
 | **HRSID** | Object Detection / Instance Segmentation | Maritime SAR / Ship Detection | 1 | 5,604 [^8] | Unknown | [Hugging Face](https://huggingface.co/datasets/dronefreak/HRSID) |
@@ -87,6 +92,11 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 [^13]: MARIDA is natively **weakly-supervised semantic segmentation** (per-pixel classification masks over Sentinel-2 imagery), not detection — this adapter converts it via connected-component extraction on the mask (8-connectivity, components < 4px dropped), and renders a derived true-color-ish RGB image from the raw 11-band reflectance (bands B04/B03/B02) since the source has no natural RGB. Splits: train 694 / valid 328 / test 359 (1,533 / 713 / 746 boxes) — the official patch-id lists, used as-is. 15 classes preserved from the source taxonomy (Marine Debris, Sargassum, Ship, Foam, Wakes, plus several water/cloud "context" classes that produce larger, sparser boxes since they describe extended surface phenomena, not compact objects).
 [^14]: No license stated anywhere — citation-requested only, no redistribution grant — **no** Hugging Face mirror. No official split; the adapter applies a deterministic seeded 80/10/10 split (same approach as GC10-DET). Verified against a real download: train 1,440 / valid 180 / test 180 images (1,800 total, exact match to the official release), 3,351 / 396 / 442 boxes respectively. Get the raw data via `detectionbench-download-dataset --dataset neudet` (Google Drive + Baidu Netdisk links).
 [^15]: The official repo has an explicit Apache-2.0 `LICENSE` (confirmed via GitHub's own license detection) — a real grant, unlike HRSID's software-only GPL-3.0. However SSDD's imagery is composited from RadarSat-2, TerraSAR-X, and Sentinel-1 — the same second-order TerraSAR-X/TanDEM-X (DLR, scientific-use) sensor-rights caveat as HRSID applies; see the dataset card for the full explanation. Splits: train 789 / valid 139 / test 232 (1,756 / 285 / 546 boxes) — official train/test kept, seeded 15% validation slice carved from train.
+[^16]: Non-commercial research/education use, registration-gated, no redistribution grant — **no** Hugging Face mirror; get the raw data from the official site. The official test split has no released labels, so the "test" split trained/evaluated on here is BDD100K's official validation set (10,000 images), and a seeded 15% slice of the official train set is held out for validation instead. Splits: train 59,384 / valid 10,479 / test 10,000.
+[^17]: The official Zenodo release's `train.json` references 4,203 training images, but the archive itself only actually ships 2,286 of them (`valid`/`test` are complete) — confirmed against Zenodo's own file listing, not a corrupted download. This adapter filters to the images that actually exist on disk, so the total here (4,086) is smaller than the officially announced 6,003.
+[^18]: PKLot has no official split, and its images are time-lapse captures from 3 fixed cameras (`PUCPR`, `UFPR04`, `UFPR05`); this adapter groups by (lot, capture day) so no capture day spans two splits — validation/test measure generalization to unseen days on *seen* cameras, not to new camera positions.
+[^19]: KITTI's official test images have never had public ground truth, so this adapter (following the field-standard Chen et al. 2015 3DOP split) uses train (3,712) / valid (3,769) only — "valid" is both the early-stopping signal and the split all reported metrics are computed on.
+[^20]: CeyMo has no official validation split; this adapter keeps the official `test` set (788 images) as-is and carves a seeded validation set out of `train`. Splits: train 1,784 / valid 315 / test 788. Not yet trained inside DetectionBench.
 
 Each dataset is a self-contained adapter under `src/detectionbench/datasets/` that converts its raw format into a canonical COCO layout — everything downstream (COCO↔YOLO conversion, training, evaluation, inference, benchmarking) is dataset-agnostic. See `src/detectionbench/datasets/doclaynet.py` for a fully worked adapter.
 
@@ -114,12 +124,18 @@ Best model per dataset from DetectionBench's [v1 model shortlist](../ROADMAP.md)
 
 | Dataset | Best v1 Model | mAP@50 | mAP@50-95 | HF Model |
 | --- | --- | --- | --- | --- |
+| BDD100K | YOLO26s | 58.76 | 33.86 | [dronefreak/bdd100k-yolo26s](https://huggingface.co/dronefreak/bdd100k-yolo26s) |
 | Brackish Underwater | YOLOv8s | 99.3 | 85.65 | [dronefreak/brackish-yolov8s](https://huggingface.co/dronefreak/brackish-yolov8s) |
 | ExDark | RF-DETR Small | 88.98 | 61.67 | [dronefreak/exdark-rfdetr-small](https://huggingface.co/dronefreak/exdark-rfdetr-small) |
-| Global Wheat Head Dataset | YOLOv11x | 74.25 | 34.92 | [dronefreak/gwhd-yolo11x](https://huggingface.co/dronefreak/gwhd-yolo11x) |
+| Global Wheat Head Dataset | YOLO11x | 74.25 | 34.92 | [dronefreak/gwhd-yolo11x](https://huggingface.co/dronefreak/gwhd-yolo11x) |
+| HRP4K | RF-DETR Small | 56.04 | 31.54 | [dronefreak/hrp4k-rfdetr-small](https://huggingface.co/dronefreak/hrp4k-rfdetr-small) |
+| KITTI | YOLOv8s | 41.99 | 25.2 | [dronefreak/kitti-yolov8s](https://huggingface.co/dronefreak/kitti-yolov8s) |
 | LISA Traffic Lights | RF-DETR Medium | 33.01 | 14.12 | [dronefreak/lisa-rfdetr-medium](https://huggingface.co/dronefreak/lisa-rfdetr-medium) |
+| PKLot | YOLO11n | 99.42 | 94.99 | [dronefreak/pklot-yolo11n](https://huggingface.co/dronefreak/pklot-yolo11n) |
+| RDD2022 Road Damage | RF-DETR Medium | 65.08 | 36.02 | [dronefreak/rdd2022-rfdetr-medium](https://huggingface.co/dronefreak/rdd2022-rfdetr-medium) |
 | SeaDronesSee | RF-DETR Medium | 83.47 | 47.49 | [dronefreak/seadronessee-rfdetr-medium](https://huggingface.co/dronefreak/seadronessee-rfdetr-medium) |
-| VisDrone-DET | YOLOv11x | 38.44 | 22.6 | [dronefreak/yolo11x-visdrone](https://huggingface.co/dronefreak/yolo11x-visdrone) |
+| UAVDT | YOLO26m | 33.43 | 19.56 | [dronefreak/uavdt-yolo26m](https://huggingface.co/dronefreak/uavdt-yolo26m) |
+| VisDrone-DET | YOLO26s | 44.87 | 26.43 | [dronefreak/visdrone-yolo26s](https://huggingface.co/dronefreak/visdrone-yolo26s) |
 <!-- LEADERBOARD:END -->
 
 ## Installation
