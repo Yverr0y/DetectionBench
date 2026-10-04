@@ -126,7 +126,7 @@ Best model per dataset from DetectionBench's [v1 model shortlist](../ROADMAP.md)
 
 | Dataset | Best v1 Model | mAP@50 | mAP@50-95 | HF Model |
 | --- | --- | --- | --- | --- |
-| BDD100K | YOLO26s | 58.76 | 33.86 | [dronefreak/bdd100k-yolo26s](https://huggingface.co/dronefreak/bdd100k-yolo26s) |
+| BDD100K | YOLOv8m | 60.89 | 35.47 | [dronefreak/bdd100k-yolov8m](https://huggingface.co/dronefreak/bdd100k-yolov8m) |
 | Brackish Underwater | YOLOv8s | 99.3 | 85.65 | [dronefreak/brackish-yolov8s](https://huggingface.co/dronefreak/brackish-yolov8s) |
 | ExDark | RF-DETR Small | 88.98 | 61.67 | [dronefreak/exdark-rfdetr-small](https://huggingface.co/dronefreak/exdark-rfdetr-small) |
 | GC10-DET | RF-DETR Small | 76.07 | 42.51 | [dronefreak/gc10det-rfdetr-small](https://huggingface.co/dronefreak/gc10det-rfdetr-small) |
@@ -138,7 +138,7 @@ Best model per dataset from DetectionBench's [v1 model shortlist](../ROADMAP.md)
 | RDD2022 Road Damage | RF-DETR Medium | 65.08 | 36.02 | [dronefreak/rdd2022-rfdetr-medium](https://huggingface.co/dronefreak/rdd2022-rfdetr-medium) |
 | SeaDronesSee | RF-DETR Medium | 83.47 | 47.49 | [dronefreak/seadronessee-rfdetr-medium](https://huggingface.co/dronefreak/seadronessee-rfdetr-medium) |
 | UAVDT | YOLO26m | 33.43 | 19.56 | [dronefreak/uavdt-yolo26m](https://huggingface.co/dronefreak/uavdt-yolo26m) |
-| VisDrone-DET | YOLO26s | 44.87 | 26.43 | [dronefreak/visdrone-yolo26s](https://huggingface.co/dronefreak/visdrone-yolo26s) |
+| VisDrone-DET | YOLO26m | 49.11 | 29.24 | [dronefreak/visdrone-yolo26m](https://huggingface.co/dronefreak/visdrone-yolo26m) |
 <!-- LEADERBOARD:END -->
 
 ## Installation

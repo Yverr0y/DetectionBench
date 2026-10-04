@@ -7,10 +7,11 @@ Curated comparison across DetectionBench's [v1 model shortlist](ROADMAP.md) only
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | YOLO26s | 58.76 | 33.86 | 75.49 | 53.07 | [dronefreak/bdd100k-yolo26s](https://huggingface.co/dronefreak/bdd100k-yolo26s) |
-| 2 | YOLOv8s | 57.93 | 33.25 | 75.38 | 51.63 | [dronefreak/bdd100k-yolov8s](https://huggingface.co/dronefreak/bdd100k-yolov8s) |
-| 3 | RF-DETR Nano | 56.9 | 31.58 | 80.68 | 64.78 | [dronefreak/bdd100k-rfdetr-nano](https://huggingface.co/dronefreak/bdd100k-rfdetr-nano) |
-| 4 | YOLO11n | 51.63 | 29.06 | 71.68 | 46.34 | [dronefreak/bdd100k-yolo11n](https://huggingface.co/dronefreak/bdd100k-yolo11n) |
+| 1 | YOLOv8m | 60.89 | 35.47 | 66.52 | 55.42 | [dronefreak/bdd100k-yolov8m](https://huggingface.co/dronefreak/bdd100k-yolov8m) |
+| 2 | YOLO26s | 58.76 | 33.86 | 75.49 | 53.07 | [dronefreak/bdd100k-yolo26s](https://huggingface.co/dronefreak/bdd100k-yolo26s) |
+| 3 | YOLOv8s | 57.93 | 33.25 | 75.38 | 51.63 | [dronefreak/bdd100k-yolov8s](https://huggingface.co/dronefreak/bdd100k-yolov8s) |
+| 4 | RF-DETR Nano | 56.9 | 31.58 | 80.68 | 64.78 | [dronefreak/bdd100k-rfdetr-nano](https://huggingface.co/dronefreak/bdd100k-rfdetr-nano) |
+| 5 | YOLO11n | 51.63 | 29.06 | 71.68 | 46.34 | [dronefreak/bdd100k-yolo11n](https://huggingface.co/dronefreak/bdd100k-yolo11n) |
 
 ## Brackish Underwater
 
@@ -145,23 +146,26 @@ Curated comparison across DetectionBench's [v1 model shortlist](ROADMAP.md) only
 | 4 | RF-DETR Nano | 32.78 | 20.31 | 73.6 | 66.98 | [dronefreak/uavdt-rfdetr-nano](https://huggingface.co/dronefreak/uavdt-rfdetr-nano) |
 | 5 | RF-DETR Small | 32.62 | 20.21 | 73.83 | 71.63 | [dronefreak/uavdt-rfdetr-small](https://huggingface.co/dronefreak/uavdt-rfdetr-small) |
 | 6 | YOLOv8m | 31.42 | 18.8 | 40.27 | 37.79 | [dronefreak/uavdt-yolov8m](https://huggingface.co/dronefreak/uavdt-yolov8m) |
-| 7 | YOLO11n | 28.56 | 16.3 | 38.04 | 32.26 | [dronefreak/uavdt-yolo11n](https://huggingface.co/dronefreak/uavdt-yolo11n) |
-| 8 | YOLOv8s | 27.12 | 15.33 | 34.65 | 31.87 | [dronefreak/uavdt-yolov8s](https://huggingface.co/dronefreak/uavdt-yolov8s) |
+| 7 | YOLO11x | 31.05 | 18.31 | 37.4 | 36.38 | [dronefreak/uavdt-yolo11x](https://huggingface.co/dronefreak/uavdt-yolo11x) |
+| 8 | YOLO11n | 28.56 | 16.3 | 38.04 | 32.26 | [dronefreak/uavdt-yolo11n](https://huggingface.co/dronefreak/uavdt-yolo11n) |
+| 9 | YOLOv8s | 27.12 | 15.33 | 34.65 | 31.87 | [dronefreak/uavdt-yolov8s](https://huggingface.co/dronefreak/uavdt-yolov8s) |
 
 ## VisDrone-DET
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | YOLO26s | 44.87 | 26.43 | 56.44 | 45.41 | [dronefreak/visdrone-yolo26s](https://huggingface.co/dronefreak/visdrone-yolo26s) |
-| 2 | YOLOv8s | 43.47 | 25.77 | 56.09 | 44.51 | [dronefreak/visdrone-yolov8s](https://huggingface.co/dronefreak/visdrone-yolov8s) |
-| 3 | YOLO11n | 39.52 | 23.0 | 51.49 | 41.02 | [dronefreak/visdrone-yolo11n](https://huggingface.co/dronefreak/visdrone-yolo11n) |
-| 4 | RF-DETR Small | 39.13 | 21.68 | 64.38 | 49.47 | [dronefreak/visdrone-rfdetr-small](https://huggingface.co/dronefreak/visdrone-rfdetr-small) |
-| 5 | YOLO11x (external) | 38.44 | 22.6 | 52.41 | 41.43 | [dronefreak/yolo11x-visdrone](https://huggingface.co/dronefreak/yolo11x-visdrone) |
-| 6 | RF-DETR Nano | 37.92 | 20.88 | 69.02 | 46.21 | [dronefreak/visdrone-rfdetr-nano](https://huggingface.co/dronefreak/visdrone-rfdetr-nano) |
-| 7 | YOLO26m (external) | 36.67 | 21.22 | 51.03 | 39.79 | [dronefreak/yolo26m-visdrone](https://huggingface.co/dronefreak/yolo26m-visdrone) |
-| 8 | YOLOv8m (external) | 34.39 | 19.95 | 48.18 | 38.2 | [dronefreak/yolov8m-visdrone](https://huggingface.co/dronefreak/yolov8m-visdrone) |
-| 9 | YOLO26s (external) | 32.1 | 18.06 | 45.75 | 35.05 | [dronefreak/yolo26s-visdrone](https://huggingface.co/dronefreak/yolo26s-visdrone) |
-| 10 | YOLOv8s (external) | 31.95 | 18.24 | 45.99 | 35.49 | [dronefreak/yolov8s-visdrone](https://huggingface.co/dronefreak/yolov8s-visdrone) |
-| 11 | YOLO11n (external) | 27.59 | 15.46 | 39.58 | 31.74 | [dronefreak/yolo11n-visdrone](https://huggingface.co/dronefreak/yolo11n-visdrone) |
+| 1 | YOLO26m | 49.11 | 29.24 | 60.21 | 49.76 | [dronefreak/visdrone-yolo26m](https://huggingface.co/dronefreak/visdrone-yolo26m) |
+| 2 | YOLOv8m | 45.47 | 26.94 | 57.86 | 46.39 | [dronefreak/visdrone-yolov8m](https://huggingface.co/dronefreak/visdrone-yolov8m) |
+| 3 | YOLO26s | 44.87 | 26.43 | 56.44 | 45.41 | [dronefreak/visdrone-yolo26s](https://huggingface.co/dronefreak/visdrone-yolo26s) |
+| 4 | YOLOv8s | 43.47 | 25.77 | 56.09 | 44.51 | [dronefreak/visdrone-yolov8s](https://huggingface.co/dronefreak/visdrone-yolov8s) |
+| 5 | YOLO11n | 39.52 | 23.0 | 51.49 | 41.02 | [dronefreak/visdrone-yolo11n](https://huggingface.co/dronefreak/visdrone-yolo11n) |
+| 6 | RF-DETR Small | 39.13 | 21.68 | 64.38 | 49.47 | [dronefreak/visdrone-rfdetr-small](https://huggingface.co/dronefreak/visdrone-rfdetr-small) |
+| 7 | YOLO11x (external) | 38.44 | 22.6 | 52.41 | 41.43 | [dronefreak/yolo11x-visdrone](https://huggingface.co/dronefreak/yolo11x-visdrone) |
+| 8 | RF-DETR Nano | 37.92 | 20.88 | 69.02 | 46.21 | [dronefreak/visdrone-rfdetr-nano](https://huggingface.co/dronefreak/visdrone-rfdetr-nano) |
+| 9 | YOLO26m (external) | 36.67 | 21.22 | 51.03 | 39.79 | [dronefreak/yolo26m-visdrone](https://huggingface.co/dronefreak/yolo26m-visdrone) |
+| 10 | YOLOv8m (external) | 34.39 | 19.95 | 48.18 | 38.2 | [dronefreak/yolov8m-visdrone](https://huggingface.co/dronefreak/yolov8m-visdrone) |
+| 11 | YOLO26s (external) | 32.1 | 18.06 | 45.75 | 35.05 | [dronefreak/yolo26s-visdrone](https://huggingface.co/dronefreak/yolo26s-visdrone) |
+| 12 | YOLOv8s (external) | 31.95 | 18.24 | 45.99 | 35.49 | [dronefreak/yolov8s-visdrone](https://huggingface.co/dronefreak/yolov8s-visdrone) |
+| 13 | YOLO11n (external) | 27.59 | 15.46 | 39.58 | 31.74 | [dronefreak/yolo11n-visdrone](https://huggingface.co/dronefreak/yolo11n-visdrone) |
 
 > Rows marked *(external)* were trained and evaluated on VisDrone-DET via a separate companion codebase ([VisDrone-dataset-python-toolkit](https://github.com/dronefreak/VisDrone-dataset-python-toolkit)), not reproduced inside DetectionBench -- included here purely for context, same shortlist checkpoint sizes as every other dataset's table. Unmarked rows are DetectionBench's own RF-DETR runs. See the [RF-DETR Small model card](https://huggingface.co/dronefreak/visdrone-rfdetr-small#external-visdrone-det-comparison) for the full 26-model external comparison.
