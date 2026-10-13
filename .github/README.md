@@ -126,7 +126,7 @@ Best model per dataset from DetectionBench's [v1 model shortlist](../ROADMAP.md)
 
 | Dataset | Best v1 Model | mAP@50 | mAP@50-95 | HF Model |
 | --- | --- | --- | --- | --- |
-| BDD100K | YOLOv8m | 60.89 | 35.47 | [dronefreak/bdd100k-yolov8m](https://huggingface.co/dronefreak/bdd100k-yolov8m) |
+| BDD100K | YOLO26m | 61.55 | 35.88 | [dronefreak/bdd100k-yolo26m](https://huggingface.co/dronefreak/bdd100k-yolo26m) |
 | Brackish Underwater | YOLOv8s | 99.3 | 85.65 | [dronefreak/brackish-yolov8s](https://huggingface.co/dronefreak/brackish-yolov8s) |
 | ExDark | RF-DETR Small | 88.98 | 61.67 | [dronefreak/exdark-rfdetr-small](https://huggingface.co/dronefreak/exdark-rfdetr-small) |
 | GC10-DET | RF-DETR Small | 76.07 | 42.51 | [dronefreak/gc10det-rfdetr-small](https://huggingface.co/dronefreak/gc10det-rfdetr-small) |
