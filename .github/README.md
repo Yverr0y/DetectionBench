@@ -1,8 +1,8 @@
+# DetectionBench
+
 <p align="center">
   <img src="../assets/banner.png" alt="DetectionBench" style="max-width: 100%; border-radius: 8px;">
 </p>
-
-# DetectionBench
 
 <!-- ROW 1: Core Identity (What this project is) -->
 <div style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
